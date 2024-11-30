@@ -116,3 +116,29 @@ export const Tr = styled.tr`
     background-color: ${theme.colors.background};
   }
 `
+export const Label = styled.label`
+  display: block;
+  margin-bottom: ${theme.spacing.sm};
+  font-weight: 500;
+  color: ${theme.colors.text};
+`
+
+export const Select = styled.select`
+  width: 25%;
+  padding: 8px 12px;
+  border-radius: ${theme.borderRadius};
+  border: 1px solid ${theme.colors.border};
+  transition: ${theme.transition};
+  margin-bottom: ${theme.spacing.md};
+
+  &:focus {
+    border-color: ${theme.colors.primary};
+    outline: none;
+  }
+`
+
+export const IntegrationIdDisplay = styled.div`
+  margin-bottom: ${theme.spacing.md};
+  font-weight: 500;
+  color: ${theme.colors.text};
+`
