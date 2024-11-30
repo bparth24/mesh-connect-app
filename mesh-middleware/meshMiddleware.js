@@ -54,7 +54,7 @@ const getMeshHealthStatus = async (req, res) => {
 const getMeshIntegrations = async (req, res) => {
     try {
         const response = await axios.get(`${MESH_SANDBOX_API_BASE_URL}/v1/integrations`, { headers: MESH_HEADERS });
-        console.log(response.data);
+        // console.log(response.data);
         // TODO: for now hardwire the integration name to 'Coinbase' -- update this to be dynamic from the frontend
         // const coinbase_integration_id = filterMeshIntegrations(response.data, 'Coinbase');
         // console.log({ "integrationId": coinbase_integration_id });

@@ -36,6 +36,31 @@ async function handleGetData(req, res) {
     }
 }
 
+// Function to handle updating a document with error handling
+async function handleUpdateDoc(req, res) {
+    try {
+        const { _id, ...updatedDoc } = req.body;
+
+        // Retrieve the existing document
+        const existingDoc = await db.get(_id);
+
+        // Merge the existing document with the updated content
+        const docToUpdate = { ...existingDoc, ...updatedDoc };
+
+        // Save the updated document back to the database
+        const response = await db.put(docToUpdate);
+        res.status(200).send(response);
+    } catch (err) {
+        if (err.status === 404) {
+            res.status(404).send({ error: 'Document not found', details: err });
+        } else if (err.status === 400) {
+            res.status(400).send({ error: 'Bad request', details: err });
+        } else {
+            res.status(500).send({ error: 'Internal server error', details: err });
+        }
+    }
+}
+
 // Function to handle filtering data with error handling
 async function handleFilterData(req, res) {
     try {
@@ -67,9 +92,31 @@ async function displayAllDocs() {
     }
 }
 
+// Function to clean up all documents
+async function cleanupAllDocs() {
+    try {
+        const result = await db.allDocs();
+        const docsToDelete = result.rows.map(row => ({
+            _id: row.id,
+            _rev: row.value.rev,
+            _deleted: true
+        }));
+        if (docsToDelete.length > 0) {
+            await db.bulkDocs(docsToDelete);
+            console.log('All documents have been deleted.');
+        } else {
+            console.log('No documents to delete.');
+        }
+    } catch (err) {
+        console.error('Error cleaning up documents:', err);
+    }
+}
+
 module.exports = {
     handleGetData,
     handleSaveData,
+    handleUpdateDoc,
     handleFilterData,
-    displayAllDocs
+    displayAllDocs,
+    cleanupAllDocs
 };
