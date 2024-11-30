@@ -1,0 +1,80 @@
+{
+    "clientName": "Thunder Client",
+    "collectionName": "Mesh Connect App Collection",
+    "collectionId": "6e67cf3e-476d-4eb4-8763-4c2f4d4dd4d7",
+    "dateExported": "2024-11-27T22:15:24.100Z",
+    "version": "1.2",
+    "folders": [],
+    "requests": [
+        {
+            "_id": "68db8916-2084-4587-bff3-a10404714472",
+            "colId": "6e67cf3e-476d-4eb4-8763-4c2f4d4dd4d7",
+            "containerId": "",
+            "name": "Mesh Middleware Health Check",
+            "url": "http://localhost:3001/api/status",
+            "method": "GET",
+            "sortNum": 10000,
+            "created": "2024-11-27T19:11:15.466Z",
+            "modified": "2024-11-27T19:11:15.466Z",
+            "headers": [
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ]
+        },
+        {
+            "_id": "91ac0751-46e5-4da4-8919-94d2568f4602",
+            "colId": "6e67cf3e-476d-4eb4-8763-4c2f4d4dd4d7",
+            "containerId": "",
+            "name": "Get Mesh Integrations",
+            "url": "http://localhost:3001/api/meshintegrations",
+            "method": "GET",
+            "sortNum": 20000,
+            "created": "2024-11-27T21:42:48.396Z",
+            "modified": "2024-11-27T21:42:48.397Z",
+            "headers": [
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ]
+        },
+        {
+            "_id": "b8a0afc1-820e-479c-a387-ca22e0fb897d",
+            "colId": "6e67cf3e-476d-4eb4-8763-4c2f4d4dd4d7",
+            "containerId": "",
+            "name": "Mesh Health Check",
+            "url": "http://localhost:3001/api/meshhealth",
+            "method": "GET",
+            "sortNum": 30000,
+            "created": "2024-11-27T21:43:38.123Z",
+            "modified": "2024-11-27T21:43:38.123Z",
+            "headers": [
+                {
+                    "name": "Accept",
+                    "value": "*/*",
+                    "isDisabled": true
+                },
+                {
+                    "name": "User-Agent",
+                    "value": "Thunder Client (https://www.thunderclient.com)",
+                    "isDisabled": true
+                }
+            ]
+        }
+    ],
+    "ref": "gD3NilAlMhBqVDWY8VsayXukUXsknYALfbheZuCTdfnLckUcTjfU-gPfZlbX3ywlPOoGFBCE-9VEX7jaKQ8qHA"
+}
