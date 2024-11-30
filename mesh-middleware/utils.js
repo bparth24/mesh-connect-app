@@ -23,6 +23,26 @@ function filterMeshIntegrations(data, name, type, categories) {
         .map(item => item.id);
 }
 
+/**
+ * Filters the data response from getMeshNetworks based on name.
+ * 
+ * @param {Object} data - The data response from getMeshNetworks.
+ * @param {string} [name] - The name to filter by.
+ * @returns {string[]} - The list of ids of the filtered items.
+ */
+function filterMeshNetworks(data, name) {
+    if (!data || !data.content || !Array.isArray(data.content.networks)) {
+        return [];
+    }
+
+    return data.content.networks
+        .filter(network => {
+            const matchesName = name ? network.name === name : false;
+            return matchesName;
+        })
+        .map(network => network.id);
+}
+
 module.exports = {
-    filterMeshIntegrations
+    filterMeshIntegrations, filterMeshNetworks
 };
