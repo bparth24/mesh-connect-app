@@ -54,3 +54,6 @@ temp/
 
 # Database
 *.ldb
+
+# Ignore mesh_connect_app_db directory
+mesh_connect_app_db/
