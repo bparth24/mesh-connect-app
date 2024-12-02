@@ -22,6 +22,7 @@ async function handleSaveData(req, res) {
 
 // Function to handle retrieving data by ID with error handling
 async function handleGetData(req, res) {
+    // console.log('req.params.id:', req.params.id); // Debugging purposes
     try {
         const doc = await db.get(req.params.id);
         res.status(200).send(doc);

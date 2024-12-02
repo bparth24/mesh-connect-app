@@ -1,7 +1,7 @@
 // Sets up the Express server and defines the routes.
 const express = require('express');
 const cors = require('cors'); // Import the cors middleware
-const { getLinkToken, getMeshHealthStatus, getMeshIntegrations, getMeshNetworks, getMeshTransferIntegrations, getHoldings, getAggregatedPortfolio, previewTransfer } = require('./meshMiddleware');
+const { getLinkToken, getMeshHealthStatus, getMeshIntegrations, getMeshNetworks, getMeshTransferIntegrations, getHoldings, getAggregatedPortfolio, previewTransfer, executeTransfer } = require('./meshMiddleware');
 const { handleSaveData, handleGetData, handleUpdateDoc, handleFilterData, displayAllDocs, cleanupAllDocs } = require('./pouchdbService');
 
 const app = express();
@@ -29,6 +29,7 @@ app.post(`/api/linktoken`, getLinkToken); // Endpoint to get Link Token
 app.get(`/api/meshnetworks`, getMeshNetworks); // Endpoint to get Mesh Networks
 app.get(`/api/meshtransferintegrations`, getMeshTransferIntegrations); // Endpoint to get Managed Transfers Integrations
 app.post(`/api/previewtransfer`, previewTransfer); // Endpoint to preview a transfer
+app.post(`/api/executetransfer`, executeTransfer); // Endpoint to execute a transfer
 
 // Portfolio API Endpoints
 app.post(`/api/holdings`, getHoldings); // Endpoint to get Holdings

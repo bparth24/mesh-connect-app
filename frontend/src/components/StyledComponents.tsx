@@ -22,7 +22,7 @@ export const theme = {
 
 export const Container = styled.div`
   padding: ${theme.spacing.xl};
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
   background-color: ${theme.colors.background};
   min-height: '100vh';
@@ -57,7 +57,7 @@ export const Button = styled.button`
 `
 
 export const Input = styled.input`
-  width: 100%;
+  width: 50%;
   padding: 8px 12px;
   border-radius: ${theme.borderRadius};
   border: 1px solid ${theme.colors.border};
@@ -142,3 +142,53 @@ export const IntegrationIdDisplay = styled.div`
   font-weight: 500;
   color: ${theme.colors.text};
 `
+
+export const DescriptionCard = styled.div`
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 20px;
+  text-align: left;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+`;
+
+export const DescriptionTitle = styled.h3`
+  margin-top: 0;
+  font-size: 1.2em;
+  color: #333;
+`;
+
+export const DescriptionText = styled.p`
+  margin: 8px 0;
+  font-size: 1em;
+  color: #555;
+`;
+
+export const ImageContainer = styled.div`
+  flex: 1;
+  text-align: center;
+`;
+
+export const ShoeImage = styled.img`
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 20px; /* Add space between the image and the description card */
+`;
+
+export const FormContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+`;
+
+export const FormColumn = styled.div<{ flexValue?: number }>`
+  flex: ${(props) => props.flexValue || 1};
+  margin-right: 20px;
+
+  &:last-child {
+    margin-right: 0;
+  }
+`;

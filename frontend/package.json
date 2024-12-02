@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
+    "@front-finance/link": "^1.1.10",
     "@meshconnect/node-api": "*",
     "@meshconnect/web-link-sdk": "*",
     "@types/react": "^18.0.9",

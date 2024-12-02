@@ -276,6 +276,11 @@
     ethereum-cryptography "^2.0.0"
     micro-ftch "^0.3.1"
 
+"@front-finance/link@^1.1.10":
+  version "1.1.10"
+  resolved "https://registry.npmjs.org/@front-finance/link/-/link-1.1.10.tgz"
+  integrity sha512-AgTVXeQE8GASXOlUiB1dFa2pOmJKPveA3d3eSG8CZ3Z5C5OVdf6baqGLhd5QlO0or70SROuc3kirVGu/OeKCsw==
+
 "@humanwhocodes/config-array@^0.5.0":
   version "0.5.0"
   resolved "https://registry.npmjs.org/@humanwhocodes/config-array/-/config-array-0.5.0.tgz"
