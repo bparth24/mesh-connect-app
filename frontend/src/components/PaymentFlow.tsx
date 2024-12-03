@@ -12,6 +12,7 @@ import {
   ShoeImage,
   FormContainer,
   FormColumn,
+  PaymentStatus,
   theme,
 } from "./StyledComponents";
 import { clientId, meshMiddlewareApiUrl } from "../utility/config";
@@ -48,6 +49,8 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const [previewResponse, setPreviewResponse] = useState<any>(null);
+  const [executeResponse, setExecuteResponse] = useState<any>(null);
 
   useEffect(() => {
     fetchNetworks();
@@ -129,6 +132,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
 
       if (data.status === "ok" && data.content && data.content.previewResult) {
         setPreviewId(data.content.previewResult.previewId);
+        setPreviewResponse(data);
         setIsConfirming(true);
       } else {
         throw new Error("Invalid preview transfer response");
@@ -161,7 +165,8 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
 
       const data = await response.json();
       console.log("Execute transfer response:", data); // Debugging log
-      setPaymentStatus(data.status);
+      setExecuteResponse(data);
+      setPaymentStatus(data.content.status);
       setSuccessMessage("Payment successful!");
     } catch (err) {
       console.error("Error executing transfer:", err); // Log the error
@@ -251,7 +256,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
         <DescriptionText>
           Pay $50 in Fiat using USDC tokens from Connected Account (e.g.
           Coinbase) to the test wallet address
-          '0x0Ff0000f0A0f0000F0F000000000ffFf00f0F0f0' over Ethereum Network.{" "}
+          '0x0Ff0000f0A0f0000F0F000000000ffFf00f0F0f0' over Ethereum Network.
         </DescriptionText>
       </DescriptionCard>
       <FormContainer>
@@ -313,9 +318,11 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
           </div>
 
           {!isConfirming ? (
-            <Button onClick={handlePreviewTransfer} disabled={isLoading}>
-              {isLoading ? "Processing..." : "Proceed to Payment"}
-            </Button>
+            <div>
+              <Button onClick={handlePreviewTransfer} disabled={isLoading}>
+                {isLoading ? "Processing..." : "Preview Transfer"}
+              </Button>
+            </div>
           ) : (
             <div>
               <p>
@@ -334,8 +341,15 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
               <p>Token: {currency}</p>
 
               <Button onClick={handleExecuteTransfer} disabled={isLoading}>
-                {isLoading ? "Processing..." : "Confirm and Pay"}
+                {isLoading ? "Processing..." : "Confirm Pay"}
               </Button>
+              {/* Debugging & Testing Purpose Only */}
+              {executeResponse && (
+                <div>
+                  <h3>Confirm Pay Response</h3>
+                  <pre>{JSON.stringify(executeResponse, null, 2)}</pre>
+                </div>
+              )}
             </div>
           )}
 
@@ -362,7 +376,11 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
             </div>
           )} */}
 
-          {paymentStatus && <p>Payment Status: {paymentStatus}</p>}
+          {paymentStatus && (
+            <PaymentStatus status={paymentStatus}>
+              Payment Status: {paymentStatus}
+            </PaymentStatus>
+          )}
           {error && <ErrorModal message={error} onClose={closeModal} />}
           {successMessage && (
             <SuccessModal
@@ -381,6 +399,15 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
               <strong>Description:</strong> A pair of stylish shoes.
             </DescriptionText>
           </ImageContainer>
+          <div>
+            {/* Debugging & Testing Purpose Only */}
+            {previewResponse && (
+              <div>
+                <h3>Preview Transfer Response</h3>
+                <pre>{JSON.stringify(previewResponse, null, 2)}</pre>
+              </div>
+            )}
+          </div>
         </FormColumn>
       </FormContainer>
     </Section>

@@ -1,32 +1,32 @@
-import styled from 'styled-components'
+import styled from "styled-components";
 
 export const theme = {
   colors: {
-    primary: '#3498db',
-    background: '#f8f9fa',
-    white: '#ffffff',
-    text: '#2c3e50',
-    error: '#e74c3c',
-    border: '#ddd'
+    primary: "#3498db",
+    background: "#f8f9fa",
+    white: "#ffffff",
+    text: "#2c3e50",
+    error: "#e74c3c",
+    border: "#ddd",
   },
   spacing: {
-    sm: '10px',
-    md: '20px',
-    lg: '30px',
-    xl: '40px'
+    sm: "10px",
+    md: "20px",
+    lg: "30px",
+    xl: "40px",
   },
-  borderRadius: '8px',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-  transition: 'all 0.3s ease'
-}
+  borderRadius: "8px",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+  transition: "all 0.3s ease",
+};
 
 export const Container = styled.div`
   padding: ${theme.spacing.xl};
   max-width: 1200px;
   margin: 0 auto;
   background-color: ${theme.colors.background};
-  min-height: '100vh';
-`
+  min-height: "100vh";
+`;
 
 export const Section = styled.section`
   background-color: ${theme.colors.white};
@@ -34,12 +34,12 @@ export const Section = styled.section`
   border-radius: ${theme.borderRadius};
   box-shadow: ${theme.boxShadow};
   margin-bottom: ${theme.spacing.lg};
-`
+`;
 
 export const Title = styled.h2`
   color: ${theme.colors.text};
   margin-bottom: ${theme.spacing.md};
-`
+`;
 
 export const Button = styled.button`
   background-color: ${theme.colors.primary};
@@ -54,7 +54,7 @@ export const Button = styled.button`
   &:hover {
     background-color: #2980b9;
   }
-`
+`;
 
 export const Input = styled.input`
   width: 50%;
@@ -68,7 +68,7 @@ export const Input = styled.input`
     border-color: ${theme.colors.primary};
     outline: none;
   }
-`
+`;
 
 export const CopyButton = styled.button`
   background-color: ${theme.colors.primary};
@@ -84,44 +84,44 @@ export const CopyButton = styled.button`
   &:hover {
     background-color: #2980b9;
   }
-`
+`;
 
 export const InputWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: ${theme.spacing.md}; /* Add gap between input and button */
-`
+`;
 
 export const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
   margin-top: ${theme.spacing.md};
-`
+`;
 
 export const Th = styled.th`
   border: 1px solid ${theme.colors.border};
   padding: ${theme.spacing.sm};
   background-color: ${theme.colors.primary};
   color: ${theme.colors.white};
-`
+`;
 
 export const Td = styled.td`
   border: 1px solid ${theme.colors.border};
   padding: ${theme.spacing.sm};
   text-align: center;
-`
+`;
 
 export const Tr = styled.tr`
   &:nth-child(even) {
     background-color: ${theme.colors.background};
   }
-`
+`;
 export const Label = styled.label`
   display: block;
   margin-bottom: ${theme.spacing.sm};
   font-weight: 500;
   color: ${theme.colors.text};
-`
+`;
 
 export const Select = styled.select`
   width: 25%;
@@ -135,13 +135,13 @@ export const Select = styled.select`
     border-color: ${theme.colors.primary};
     outline: none;
   }
-`
+`;
 
 export const IntegrationIdDisplay = styled.div`
   margin-bottom: ${theme.spacing.md};
   font-weight: 500;
   color: ${theme.colors.text};
-`
+`;
 
 export const DescriptionCard = styled.div`
   background-color: #f9f9f9;
@@ -191,4 +191,8 @@ export const FormColumn = styled.div<{ flexValue?: number }>`
   &:last-child {
     margin-right: 0;
   }
+`;
+
+export const PaymentStatus = styled.p<{ status: string | null }>`
+  color: ${(props) => (props.status === "succeeded" ? "green" : "red")};
 `;
