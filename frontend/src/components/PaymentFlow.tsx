@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNetwork } from "../context/NetworkContext";
 import {
   Section,
   Title,
@@ -17,22 +18,6 @@ import {
 import { meshMiddlewareApiUrl } from "../utility/config";
 import ErrorModal from "./ErrorModal";
 import SuccessModal from "./SuccessModal";
-
-/**
- * Represents a network in the payment flow.
- *
- * @interface Network
- * @property {string} id - The unique identifier for the network.
- * @property {string} name - The name of the network.
- * @property {string} logoUrl - The URL of the network's logo.
- * @property {string[]} supportedTokens - A list of tokens supported by the network.
- */
-interface Network {
-  id: string;
-  name: string;
-  logoUrl: string;
-  supportedTokens: string[];
-}
 
 /**
  * Props for the PaymentFlow component.
@@ -70,12 +55,12 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
   clientDocId,
   selectedType,
 }) => {
+  const { networks } = useNetwork();
   const [amount, setAmount] = useState<number>(50);
   const [currency, setCurrency] = useState<string>("USDC");
   const [toAddress, setToAddress] = useState<string>(
     "0x0Ff0000f0A0f0000F0F000000000ffFf00f0F0f0"
   );
-  const [networks, setNetworks] = useState<Network[]>([]);
   const [selectedNetworkId, setSelectedNetworkId] = useState<string>("");
   const [supportedTokens, setSupportedTokens] = useState<string[]>([]);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
@@ -88,10 +73,6 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
   const [executeResponse, setExecuteResponse] = useState<any>(null);
 
   useEffect(() => {
-    fetchNetworks();
-  }, []);
-
-  useEffect(() => {
     if (selectedNetworkId) {
       const selectedNetwork = networks.find(
         (network) => network.id === selectedNetworkId
@@ -99,52 +80,14 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
       console.log("PaymentFlow -> Selected network:", selectedNetwork); // Debugging log
       if (selectedNetwork) {
         setSupportedTokens(selectedNetwork.supportedTokens);
-        // Set default currency to USDC if available, otherwise to the first supported token
         setCurrency(
           selectedNetwork.supportedTokens.includes("USDC")
             ? "USDC"
             : selectedNetwork.supportedTokens[0] || ""
-        );
+        ); // Set default currency to USDC if available, otherwise to the first supported token
       }
     }
   }, [selectedNetworkId, networks]);
-
-  /**
-   * Fetches the list of networks from the mesh middleware API and updates the state with the fetched networks.
-   * If the Ethereum network is found in the fetched networks, it sets the selected network ID to Ethereum's ID.
-   *
-   * @async
-   * @function fetchNetworks
-   * @throws Will throw an error if the network request fails.
-   */
-  const fetchNetworks = async () => {
-    try {
-      const response = await fetch(`${meshMiddlewareApiUrl}/meshnetworks`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch networks");
-      }
-
-      const data = await response.json();
-      setNetworks(data.content.networks);
-
-      // Set default network to Ethereum if it exists
-      const ethereumNetwork = data.content.networks.find(
-        (network: Network) => network.name === "Ethereum"
-      );
-      if (ethereumNetwork) {
-        setSelectedNetworkId(ethereumNetwork.id);
-      }
-    } catch (err) {
-      console.error("PaymentFlow -> Error fetching networks:", err); // Log the error
-      setError((err as Error).message);
-    }
-  };
 
   /**
    * Handles the preview transfer process by sending a request to the mesh middleware API.

@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
+import { NetworkProvider } from "../context/NetworkContext";
 import {
   Container,
   Section,
@@ -28,7 +29,6 @@ import SuccessModal from "../components/SuccessModal";
 import Login from "../components/Login";
 import PaymentFlow from "../components/PaymentFlow";
 import LinkUIPaymentFlow from "../components/LinkUIPaymentFlow";
-// import PaymentFlow2 from "../components/PaymentFlow2";
 
 export const App: React.FC = () => {
   // State for login/logout
@@ -418,232 +418,218 @@ export const App: React.FC = () => {
   };
 
   return (
-    <Container>
-      {!isLoggedIn ? (
-        <Login onLogin={handleLogin} />
-      ) : (
-        <div>
-          <Section>
-            <Title>
-              Welcome, {clientId}! <span></span> Mesh Connect App
-            </Title>
-            <Button onClick={handleLogout}>Logout</Button>
-            <p>
-              <strong>User ID: </strong> {clientId}
-            </p>
-          </Section>
-
-          <Section>
-            <Title>Select Connected Account Category & Type</Title>
-            <div>
-              <Label htmlFor="category">Category:</Label>
-              <Select
-                id="category"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-              >
-                <option value="">Select Category</option>
-                {categories.map((category, index) => (
-                  <option key={index} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="type">Type:</Label>
-              <Select
-                id="type"
-                value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-              >
-                <option value="">Select Type</option>
-                {types.map((type, index) => (
-                  <option key={index} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            {integrationId && (
-              <IntegrationIdDisplay>
-                <strong>Selected ID:</strong> {integrationId}
-              </IntegrationIdDisplay>
-            )}
-            <Button onClick={handleSaveSelection}>Save Selection</Button>
-
-            {/* Below Old Logic */}
-
-            {/* <Button onClick={handleGetIntegrationId}>Get Integration Id</Button>
-        {integrationId && (
+    <NetworkProvider>
+      <Container>
+        {!isLoggedIn ? (
+          <Login onLogin={handleLogin} />
+        ) : (
           <div>
-            <p><strong>User Id: </strong> {clientId}</p>
-            <p><strong>Coinbase Integration Id: </strong>{integrationId}</p>
-            <CopyButton onClick={() => handleCopy(integrationId)}>
-              {copyStatus ? 'Copied!' : 'Copy'}
-            </CopyButton>
-          </div>
-        )} */}
-          </Section>
-
-          <Section>
-            <Title>Launch Link & Connect to Coinbase</Title>
-            {integrationId && (
-              <div>
-                <p>
-                  <strong>User Id: </strong> {clientId}
-                </p>
-                <p>
-                  <strong>Coinbase Integration Id: </strong>
-                  {integrationId}
-                </p>
-              </div>
-            )}
-            <Button onClick={handleLaunchLink}>Launch Link</Button>
-            {/* <InputWrapper>
-             <Input
-                value={inputIntegrationId}
-                onChange={(e) => setInputIntegrationId(e.target.value)}
-                placeholder="Paste Coinbase Integration Id here"
-            /> 
-        </InputWrapper> */}
-            {/* <p><strong>Note:</strong> User Id is passed in the body.</p> */}
-            {linkToken && (
-              <p style={{ wordWrap: "break-word" }}>
-                <strong>Link Token:</strong> {linkToken}
-              </p>
-            )}
-            {integrationPayload && (
+            <Section>
+              <Title>
+                Welcome, {clientId}! <span></span> Mesh Connect App
+              </Title>
+              <Button onClick={handleLogout}>Logout</Button>
               <p>
-                <strong>Message: </strong>Coinbase Exchange - Connected
-                Successfully! <br></br>
+                <strong>User ID: </strong> {clientId}
               </p>
-              // debugging purposes
-              //   <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}><strong>Message: <br></br> </strong>
-              //     {JSON.stringify(integrationPayload, null, 2)}
-              //   </pre>
-            )}
-          </Section>
+            </Section>
 
-          <Section>
-            <Title>Coinbase Portfolio & Holdings</Title>
-            <Button onClick={handleFetchPortfolio}>Fetch Holdings</Button>
-            <span> </span>
-            <Button onClick={handleFetchAggregatedPortfolio}>
-              Fetch Aggregated Portfolio
-            </Button>
-
-            {portfolio && (
+            <Section>
+              <Title>Select Connected Account Category & Type</Title>
               <div>
-                <Title>Coinbase Holdings</Title>
-                <Table>
-                  <thead>
-                    <Tr>
-                      <Th>Name</Th>
-                      <Th>Symbol</Th>
-                      <Th>Amount</Th>
-                      <Th>Cost Basis</Th>
-                    </Tr>
-                  </thead>
-                  <tbody>
-                    {portfolio.content.cryptocurrencyPositions.map(
-                      (item: any, index: number) => (
-                        <Tr key={index}>
-                          <Td>{item.name}</Td>
-                          <Td>{item.symbol}</Td>
-                          <Td>{item.amount}</Td>
-                          <Td>${item.costBasis}</Td>
-                        </Tr>
-                      )
-                    )}
-                  </tbody>
-                </Table>
-                {/* Debugging Purposes */}
-                {/* <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}><strong>Coinbase Portfolio JSON:<br></br> </strong>
+                <Label htmlFor="category">Category:</Label>
+                <Select
+                  id="category"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((category, index) => (
+                    <option key={index} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="type">Type:</Label>
+                <Select
+                  id="type"
+                  value={selectedType}
+                  onChange={(e) => setSelectedType(e.target.value)}
+                >
+                  <option value="">Select Type</option>
+                  {types.map((type, index) => (
+                    <option key={index} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              {integrationId && (
+                <IntegrationIdDisplay>
+                  <strong>Selected ID:</strong> {integrationId}
+                </IntegrationIdDisplay>
+              )}
+              <Button onClick={handleSaveSelection}>Save Selection</Button>
+            </Section>
+
+            <Section>
+              <Title>Launch Link & Connect to Coinbase</Title>
+              {integrationId && (
+                <div>
+                  <p>
+                    <strong>User Id: </strong> {clientId}
+                  </p>
+                  <p>
+                    <strong>Coinbase Integration Id: </strong>
+                    {integrationId}
+                  </p>
+                </div>
+              )}
+              <Button onClick={handleLaunchLink}>Launch Link</Button>
+              {/* Debugging & testing purpose only */}
+              {/* {linkToken && (
+                <p style={{ wordWrap: "break-word" }}>
+                  <strong>Link Token:</strong> {linkToken}
+                </p>
+              )} */}
+              {integrationPayload && (
+                <p>
+                  <strong>Message: </strong>Coinbase Exchange - Connected
+                  Successfully! <br></br>
+                </p>
+                // debugging purposes
+                //   <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}><strong>Message: <br></br> </strong>
+                //     {JSON.stringify(integrationPayload, null, 2)}
+                //   </pre>
+              )}
+            </Section>
+
+            <Section>
+              <Title>Coinbase Portfolio & Holdings</Title>
+              <Button onClick={handleFetchPortfolio}>Fetch Holdings</Button>
+              <span> </span>
+              <Button onClick={handleFetchAggregatedPortfolio}>
+                Fetch Aggregated Portfolio
+              </Button>
+
+              {portfolio && (
+                <div>
+                  <Title>Coinbase Holdings</Title>
+                  <Table>
+                    <thead>
+                      <Tr>
+                        <Th>Name</Th>
+                        <Th>Symbol</Th>
+                        <Th>Amount</Th>
+                        <Th>Cost Basis</Th>
+                      </Tr>
+                    </thead>
+                    <tbody>
+                      {portfolio.content.cryptocurrencyPositions.map(
+                        (item: any, index: number) => (
+                          <Tr key={index}>
+                            <Td>{item.name}</Td>
+                            <Td>{item.symbol}</Td>
+                            <Td>{item.amount}</Td>
+                            <Td>${item.costBasis}</Td>
+                          </Tr>
+                        )
+                      )}
+                    </tbody>
+                  </Table>
+                  {/* Debugging & testing purpose only */}
+                  {/* <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}><strong>Coinbase Portfolio JSON:<br></br> </strong>
               {JSON.stringify(portfolio, null, 2)}
             </pre> */}
-              </div>
-            )}
-            {aggregatedPortfolio && (
-              <div>
-                <Title>Coinbase Portfolio</Title>
-                <p>
-                  <strong>Portfolio Cost Basis:</strong> $
-                  {aggregatedPortfolio.content.portfolioCostBasis}
-                </p>
-                <p>
-                  <strong>Actual Portfolio Performance:</strong>{" "}
-                  {aggregatedPortfolio.content.actualPortfolioPerformance}%
-                </p>
-                <p>
-                  <strong>Equities Value:</strong> $
-                  {aggregatedPortfolio.content.equitiesValue}
-                </p>
-                <p>
-                  <strong>Cryptocurrencies Value:</strong> $
-                  {aggregatedPortfolio.content.cryptocurrenciesValue}
-                </p>
-                <p>
-                  <strong>NFTs Value:</strong> $
-                  {aggregatedPortfolio.content.nftsValue}
-                </p>
-                <Table>
-                  <thead>
-                    <Tr>
-                      <Th>Company Name</Th>
-                      <Th>Symbol</Th>
-                      <Th>Amount</Th>
-                      <Th>Cost Basis</Th>
-                      <Th>Market Value</Th>
-                      <Th>Last Price</Th>
-                      <Th>Portfolio Percentage</Th>
-                      <Th>Total Return</Th>
-                      <Th>Return Percentage</Th>
-                    </Tr>
-                  </thead>
-                  <tbody>
-                    {aggregatedPortfolio.content.cryptocurrencyPositions.map(
-                      (item: any, index: number) => (
-                        <Tr key={index}>
-                          <Td>{item.companyName}</Td>
-                          <Td>{item.symbol}</Td>
-                          <Td>{item.amount}</Td>
-                          <Td>${item.costBasis}</Td>
-                          <Td>${item.marketValue}</Td>
-                          <Td>${item.lastPrice}</Td>
-                          <Td>{item.portfolioPercentage}%</Td>
-                          <Td>${item.totalReturn}</Td>
-                          <Td>{item.returnPercentage}%</Td>
-                        </Tr>
-                      )
-                    )}
-                  </tbody>
-                </Table>
-                {/* <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+                </div>
+              )}
+              {aggregatedPortfolio && (
+                <div>
+                  <Title>Coinbase Portfolio</Title>
+                  <p>
+                    <strong>Portfolio Cost Basis:</strong> $
+                    {aggregatedPortfolio.content.portfolioCostBasis}
+                  </p>
+                  <p>
+                    <strong>Actual Portfolio Performance:</strong>{" "}
+                    {aggregatedPortfolio.content.actualPortfolioPerformance}%
+                  </p>
+                  <p>
+                    <strong>Equities Value:</strong> $
+                    {aggregatedPortfolio.content.equitiesValue}
+                  </p>
+                  <p>
+                    <strong>Cryptocurrencies Value:</strong> $
+                    {aggregatedPortfolio.content.cryptocurrenciesValue}
+                  </p>
+                  <p>
+                    <strong>NFTs Value:</strong> $
+                    {aggregatedPortfolio.content.nftsValue}
+                  </p>
+                  <Table>
+                    <thead>
+                      <Tr>
+                        <Th>Company Name</Th>
+                        <Th>Symbol</Th>
+                        <Th>Amount</Th>
+                        <Th>Cost Basis</Th>
+                        <Th>Market Value</Th>
+                        <Th>Last Price</Th>
+                        <Th>Portfolio Percentage</Th>
+                        <Th>Total Return</Th>
+                        <Th>Return Percentage</Th>
+                      </Tr>
+                    </thead>
+                    <tbody>
+                      {aggregatedPortfolio.content.cryptocurrencyPositions.map(
+                        (item: any, index: number) => (
+                          <Tr key={index}>
+                            <Td>{item.companyName}</Td>
+                            <Td>{item.symbol}</Td>
+                            <Td>{item.amount}</Td>
+                            <Td>${item.costBasis}</Td>
+                            <Td>${item.marketValue}</Td>
+                            <Td>${item.lastPrice}</Td>
+                            <Td>{item.portfolioPercentage}%</Td>
+                            <Td>${item.totalReturn}</Td>
+                            <Td>{item.returnPercentage}%</Td>
+                          </Tr>
+                        )
+                      )}
+                    </tbody>
+                  </Table>
+                  {/* Debugging & testing purpose only */}
+                  {/* <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
               {JSON.stringify(aggregatedPortfolio, null, 2)}
             </pre> */}
-              </div>
-            )}
-          </Section>
-          {/* Payment flow using Managed Transfer APIs (PreviewTransfer, ExecuteTransfer) */}
-          <PaymentFlow clientDocId={clientDocId} selectedType={selectedType} />
-
-          {/* Payment flow using Link Token */}
-          <LinkUIPaymentFlow
-            clientDocId={clientDocId}
-            selectedType={selectedType}
-          />
-
-          {error && <ErrorModal message={error} onClose={closeModal} />}
-          {successMessage && (
-            <SuccessModal
-              message={successMessage}
-              onClose={closeSuccessModal}
+                </div>
+              )}
+            </Section>
+            {/* Payment flow using Managed Transfer APIs (PreviewTransfer, ExecuteTransfer) */}
+            <PaymentFlow
+              clientDocId={clientDocId}
+              selectedType={selectedType}
             />
-          )}
-        </div>
-      )}
-    </Container>
+
+            {/* Payment flow using Link Token */}
+            <LinkUIPaymentFlow
+              clientDocId={clientDocId}
+              selectedType={selectedType}
+            />
+
+            {error && <ErrorModal message={error} onClose={closeModal} />}
+            {successMessage && (
+              <SuccessModal
+                message={successMessage}
+                onClose={closeSuccessModal}
+              />
+            )}
+          </div>
+        )}
+      </Container>
+    </NetworkProvider>
   );
 };
 

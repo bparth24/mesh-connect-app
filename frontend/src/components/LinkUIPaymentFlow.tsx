@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useNetwork } from "../context/NetworkContext";
 import {
   Section,
   Title,
@@ -20,13 +21,6 @@ import ErrorModal from "./ErrorModal";
 import SuccessModal from "./SuccessModal";
 import { createLink } from "@meshconnect/web-link-sdk";
 
-interface Network {
-  id: string;
-  name: string;
-  logoUrl: string;
-  supportedTokens: string[];
-}
-
 interface LinkUIPaymentFlowProps {
   clientDocId: string;
   selectedType: string;
@@ -36,6 +30,7 @@ const LinkUIPaymentFlow: React.FC<LinkUIPaymentFlowProps> = ({
   clientDocId,
   selectedType,
 }) => {
+  const { networks } = useNetwork();
   const [username, setClientId] = useState<string>(
     localStorage.getItem("clientId") || ""
   );
@@ -44,19 +39,12 @@ const LinkUIPaymentFlow: React.FC<LinkUIPaymentFlowProps> = ({
   const [toAddress, setToAddress] = useState<string>(
     "0x0Ff0000f0A0f0000F0F000000000ffFf00f0F0f0"
   );
-  const [networks, setNetworks] = useState<Network[]>([]);
   const [selectedNetworkId, setSelectedNetworkId] = useState<string>("");
   const [supportedTokens, setSupportedTokens] = useState<string[]>([]);
   const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isConfirming, setIsConfirming] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [transferData, setTransferData] = useState<any | null>(null);
-
-  useEffect(() => {
-    fetchNetworks();
-  }, []);
 
   useEffect(() => {
     if (selectedNetworkId) {
@@ -76,35 +64,25 @@ const LinkUIPaymentFlow: React.FC<LinkUIPaymentFlowProps> = ({
     }
   }, [selectedNetworkId, networks]);
 
-  const fetchNetworks = async () => {
-    try {
-      const response = await fetch(`${meshMiddlewareApiUrl}/meshnetworks`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch networks");
-      }
-
-      const data = await response.json();
-      setNetworks(data.content.networks);
-
-      // Set default network to Ethereum if it exists
-      const ethereumNetwork = data.content.networks.find(
-        (network: Network) => network.name === "Ethereum"
-      );
-      if (ethereumNetwork) {
-        setSelectedNetworkId(ethereumNetwork.id);
-      }
-    } catch (err) {
-      console.error("Error fetching networks:", err); // Log the error
-      setError((err as Error).message);
-    }
-  };
-
+  /**
+   * Opens the Mesh Link with the provided token and sets up event handlers for various link events.
+   *
+   * @param {string} token - The token used to authenticate and open the Mesh Link.
+   *
+   * Event Handlers:
+   * - `onIntegrationConnected`: Triggered when the integration is successfully connected.
+   *   - @param {Object} payload - The payload containing integration details.
+   *
+   * - `onExit`: Triggered when the link is exited.
+   *   - @param {Error} error - The error object if an error occurred.
+   *   - @param {Object} summary - The summary object containing exit details.
+   *
+   * - `onTransferFinished`: Triggered when a transfer is finished.
+   *   - @param {Object} transferData - The data object containing transfer details.
+   *
+   * - `onEvent`: Triggered for various events during the link session.
+   *   - @param {Object} event - The event object containing event details.
+   */
   const openLink = (token: string) => {
     const meshLink = createLink({
       clientId: username,
@@ -121,19 +99,29 @@ const LinkUIPaymentFlow: React.FC<LinkUIPaymentFlowProps> = ({
       },
       onTransferFinished: (transferData) => {
         console.log("Transfer finished:", transferData);
-        setTransferData(transferData);
+        setTransferData(transferData); // set transfer data to the state.
         setPaymentStatus(transferData.status);
-        // TODO: set transfer data to the state.
       },
       onEvent: (event) => {
-        console.log("Event:", event);
-        // TODO: set event data to the state & database.
+        console.log("Event:", event); // TODO: set event data to the state & database.
       },
     });
     meshLink.openLink(token);
   };
 
-  // Function to handle link token payment flow
+  /**
+   * Handles the payment process using Link UI.
+   *
+   * This function creates transfer options and sends a POST request to the mesh middleware API
+   * to initiate the payment process. If the request is successful, it opens the Link UI payment flow.
+   *
+   * @async
+   * @function handlePaymentUsingLinkUI
+   * @returns {Promise<void>} A promise that resolves when the payment process is complete.
+   *
+   * @throws {Error} Throws an error if the payment process fails.
+   *
+   */
   const handlePaymentUsingLinkUI = useCallback(async () => {
     const transferOptions = {
       toAddresses: [
