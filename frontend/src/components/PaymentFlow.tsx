@@ -13,12 +13,20 @@ import {
   FormContainer,
   FormColumn,
   PaymentStatus,
-  theme,
 } from "./StyledComponents";
-import { clientId, meshMiddlewareApiUrl } from "../utility/config";
+import { meshMiddlewareApiUrl } from "../utility/config";
 import ErrorModal from "./ErrorModal";
 import SuccessModal from "./SuccessModal";
 
+/**
+ * Represents a network in the payment flow.
+ *
+ * @interface Network
+ * @property {string} id - The unique identifier for the network.
+ * @property {string} name - The name of the network.
+ * @property {string} logoUrl - The URL of the network's logo.
+ * @property {string[]} supportedTokens - A list of tokens supported by the network.
+ */
 interface Network {
   id: string;
   name: string;
@@ -26,11 +34,38 @@ interface Network {
   supportedTokens: string[];
 }
 
+/**
+ * Props for the PaymentFlow component.
+ *
+ * @interface PaymentFlowProps
+ * @property {string} clientDocId - The document ID of the client.
+ * @property {string} selectedType - The selected type for the payment flow.
+ */
 interface PaymentFlowProps {
   clientDocId: string;
   selectedType: string;
 }
 
+/**
+ * PaymentFlow component handles the payment process using USDC tokens.
+ * It allows users to preview and execute a transfer from a connected account to a specified wallet address.
+ *
+ * @component
+ * @param {PaymentFlowProps} props - The properties for the PaymentFlow component.
+ * @param {string} props.clientDocId - The client document ID.
+ * @param {string} props.selectedType - The selected account type.
+ *
+ * @returns {JSX.Element} The rendered PaymentFlow component.
+ *
+ * @example
+ * <PaymentFlow clientDocId="12345" selectedType="Coinbase" />
+ *
+ * @remarks
+ * This component fetches available networks and supported tokens, allows the user to preview a transfer,
+ * and then execute the transfer. It also handles loading states, error states, and success messages.
+ * The component displays the payment status and provides a modal for error and success messages.
+ *
+ */
 const PaymentFlow: React.FC<PaymentFlowProps> = ({
   clientDocId,
   selectedType,
@@ -61,7 +96,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
       const selectedNetwork = networks.find(
         (network) => network.id === selectedNetworkId
       );
-      console.log("Selected network:", selectedNetwork); // Debugging log
+      console.log("PaymentFlow -> Selected network:", selectedNetwork); // Debugging log
       if (selectedNetwork) {
         setSupportedTokens(selectedNetwork.supportedTokens);
         // Set default currency to USDC if available, otherwise to the first supported token
@@ -74,6 +109,14 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
     }
   }, [selectedNetworkId, networks]);
 
+  /**
+   * Fetches the list of networks from the mesh middleware API and updates the state with the fetched networks.
+   * If the Ethereum network is found in the fetched networks, it sets the selected network ID to Ethereum's ID.
+   *
+   * @async
+   * @function fetchNetworks
+   * @throws Will throw an error if the network request fails.
+   */
   const fetchNetworks = async () => {
     try {
       const response = await fetch(`${meshMiddlewareApiUrl}/meshnetworks`, {
@@ -98,11 +141,23 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
         setSelectedNetworkId(ethereumNetwork.id);
       }
     } catch (err) {
-      console.error("Error fetching networks:", err); // Log the error
+      console.error("PaymentFlow -> Error fetching networks:", err); // Log the error
       setError((err as Error).message);
     }
   };
 
+  /**
+   * Handles the preview transfer process by sending a request to the mesh middleware API.
+   * Sets the loading state to true while the request is in progress.
+   * If the request is successful and the response is valid, updates the preview ID, preview response, and sets the confirming state to true.
+   * If the request fails or the response is invalid, sets an error message.
+   * Finally, sets the loading state to false.
+   *
+   * @async
+   * @function handlePreviewTransfer
+   * @returns {Promise<void>} A promise that resolves when the preview transfer process is complete.
+   * @throws {Error} Throws an error if the preview transfer request fails or the response is invalid.
+   */
   const handlePreviewTransfer = async () => {
     setIsLoading(true);
     try {
@@ -128,7 +183,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
       }
 
       const data = await response.json();
-      console.log("Preview transfer response:", data); // Debugging log
+      console.log("PaymentFlow -> Preview transfer response:", data); // Debugging log
 
       if (data.status === "ok" && data.content && data.content.previewResult) {
         setPreviewId(data.content.previewResult.previewId);
@@ -138,14 +193,25 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
         throw new Error("Invalid preview transfer response");
       }
     } catch (err) {
-      console.error("Error previewing transfer:", err); // Log the error
+      console.error("PaymentFlow -> Error previewing transfer:", err); // Log the error
       setError((err as Error).message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Execute transfer
+  /**
+   * Handles the execution of a transfer by making a POST request to the mesh middleware API.
+   *
+   * This function sets the loading state to true, sends a request with the userId to the API,
+   * and processes the response. If the transfer is successful, it updates the payment status
+   * and sets a success message. If there is an error, it logs the error and sets an error message.
+   * The loading state is reset to false after the operation completes.
+   *
+   * @async
+   * @function handleExecuteTransfer
+   * @returns {Promise<void>} A promise that resolves when the transfer execution is complete.
+   */
   const handleExecuteTransfer = async () => {
     setIsLoading(true);
     try {
@@ -164,12 +230,12 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
       }
 
       const data = await response.json();
-      console.log("Execute transfer response:", data); // Debugging log
+      console.log("PaymentFlow -> Execute transfer response:", data); // Debugging log
       setExecuteResponse(data);
       setPaymentStatus(data.content.status);
       setSuccessMessage("Payment successful!");
     } catch (err) {
-      console.error("Error executing transfer:", err); // Log the error
+      console.error("PaymentFlow -> Error executing transfer:", err); // Log the error
       setError((err as Error).message);
     } finally {
       setIsLoading(false);
@@ -195,7 +261,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
         </DescriptionText>
       </DescriptionCard>
       <FormContainer>
-        <FormColumn flexValue={2}>
+        <FormColumn flexvalue={2}>
           <div>
             <Label htmlFor="amount">Amount (USD):</Label>
             <Input
@@ -301,7 +367,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
             />
           )}
         </FormColumn>
-        <FormColumn flexValue={1}>
+        <FormColumn flexvalue={1}>
           <ImageContainer>
             <ShoeImage src="/shoe-image.webp" alt="Shoes" />
             <DescriptionText>

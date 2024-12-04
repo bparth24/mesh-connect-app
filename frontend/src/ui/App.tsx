@@ -34,6 +34,7 @@ export const App: React.FC = () => {
   // State for login/logout
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [clientId, setUsername] = useState<string>(""); // Username of the client only - Initialize as empty string
+
   const [clientDocId, setClientDocId] = useState<string>(""); // Document ID for the client in the format of username_category_type (e.g., alice_exchange_coinbase) - Initialize as empty string
   const [error, setError] = useState<string | null>(null);
   const [integrationId, setIntegrationId] = useState<string>("");
@@ -372,6 +373,11 @@ export const App: React.FC = () => {
     setSuccessMessage(null);
   };
 
+  /**
+   * Handles the login process by setting the login state, username/clientId, and storing the login information in local storage.
+   *
+   * @param {string} clientId - The client Id to be set as the username.
+   */
   const handleLogin = (clientId: string) => {
     setIsLoggedIn(true);
     setUsername(clientId);
@@ -379,6 +385,13 @@ export const App: React.FC = () => {
     localStorage.setItem("clientId", clientId);
   };
 
+  /**
+   * Handles the user logout process by performing the following actions:
+   * - Sets the user login state to false.
+   * - Clears the username/clientId.
+   * - Removes various items from local storage.
+   * - Resets multiple state variables to their initial values.
+   */
   const handleLogout = () => {
     setIsLoggedIn(false);
     setUsername("");
@@ -416,7 +429,7 @@ export const App: React.FC = () => {
             </Title>
             <Button onClick={handleLogout}>Logout</Button>
             <p>
-              <strong>User ID: </strong> {clientId}{" "}
+              <strong>User ID: </strong> {clientId}
             </p>
           </Section>
 

@@ -192,7 +192,7 @@ const LinkUIPaymentFlow: React.FC<LinkUIPaymentFlowProps> = ({
         </DescriptionText>
       </DescriptionCard>
       <FormContainer>
-        <FormColumn flexValue={2}>
+        <FormColumn flexvalue={2}>
           <div>
             <Label htmlFor="amount">Amount (USD):</Label>
             <Input
@@ -273,7 +273,7 @@ const LinkUIPaymentFlow: React.FC<LinkUIPaymentFlowProps> = ({
             />
           )}
         </FormColumn>
-        <FormColumn flexValue={1}>
+        <FormColumn flexvalue={1}>
           <ImageContainer>
             <ShoeImage src="/shoe-image.webp" alt="Shoes" />
             <DescriptionText>
