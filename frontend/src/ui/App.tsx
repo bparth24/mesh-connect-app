@@ -1,78 +1,94 @@
 import React, { useState, useCallback, useEffect } from "react";
+import {
+  IntegrationProvider,
+  useIntegration,
+} from "../context/IntegrationContext";
 import { NetworkProvider } from "../context/NetworkContext";
 import {
   Container,
   Section,
   Title,
   Button,
-  Input,
-  CopyButton,
-  InputWrapper,
   Table,
   Th,
   Td,
   Tr,
-  Label,
-  Select,
-  IntegrationIdDisplay,
-  theme,
 } from "../components/StyledComponents";
 import { meshMiddlewareApiUrl } from "../utility/config";
 import { createLink } from "@meshconnect/web-link-sdk";
-import {
-  IntegrationItem,
-  IntegrationResponse,
-  IntegrationPayload,
-} from "../types/Types";
+import { IntegrationPayload } from "../types/Types";
 import ErrorModal from "../components/ErrorModal";
 import SuccessModal from "../components/SuccessModal";
 import Login from "../components/Login";
 import PaymentFlow from "../components/PaymentFlow";
 import LinkUIPaymentFlow from "../components/LinkUIPaymentFlow";
+import SelectionSection from "../components/SelectionSection";
+import LinkSection from "../components/LinkSection";
 
+/**
+ * The `App` component serves as the root component for the application.
+ * It wraps the main content of the app with the necessary context providers.
+ *
+ * Providers:
+ * - `IntegrationProvider`: Provides integration-related context to the app.
+ * - `NetworkProvider`: Provides network-related context to the app.
+ *
+ * @returns {JSX.Element} The rendered component tree with context providers.
+ */
 export const App: React.FC = () => {
+  return (
+    <IntegrationProvider>
+      <NetworkProvider>
+        <AppContent />
+      </NetworkProvider>
+    </IntegrationProvider>
+  );
+};
+
+/**
+ * The `AppContent` component is the main content of the application, responsible for managing the state and interactions related to user login, integration selection, and portfolio management.
+ *
+ * @component
+ * @returns {JSX.Element} The rendered component.
+ *
+ * @example
+ * <AppContent />
+ *
+ * @remarks
+ * This component handles the following functionalities:
+ * - User login and logout
+ * - Integration selection and saving
+ * - Launch link - Connect to Coinbase
+ * - Fetching and displaying the user's holdings and aggregated portfolio
+ * - Managing state for various aspects of the application, including error handling and success messages
+ *
+ */
+const AppContent: React.FC = () => {
   // State for login/logout
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [clientId, setUsername] = useState<string>(""); // Username of the client only - Initialize as empty string
 
+  const { categories, types, categoryTypeMap } = useIntegration(); // Integration context state
+
   const [clientDocId, setClientDocId] = useState<string>(""); // Document ID for the client in the format of username_category_type (e.g., alice_exchange_coinbase) - Initialize as empty string
-  const [error, setError] = useState<string | null>(null);
-  const [integrationId, setIntegrationId] = useState<string>("");
+  const [integrationId, setIntegrationId] = useState<string>(""); // Integration ID for the selected category and type - Initialize as empty string
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [portfolio, setPortfolio] = useState<any | null>(null);
   const [aggregatedPortfolio, setAggregatedPortfolio] = useState<any | null>(
     null
   );
-  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
-  const [copyStatus, setCopyStatus] = useState<boolean>(false);
-  const [inputIntegrationId, setInputIntegrationId] = useState<string>("");
   const [integrationPayload, setIntegrationPayload] = useState<any | null>(
     null
   );
-  const [categories, setCategories] = useState<string[]>([]);
-  const [types, setTypes] = useState<string[]>([]);
+
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [selectedType, setSelectedType] = useState<string>("");
-  const [categoryTypeMap, setCategoryTypeMap] = useState<{
-    [key: string]: { [key: string]: string };
-  }>({});
+
+  // error and success message state
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Clear linkToken on component mount (page refresh)
-    localStorage.removeItem("linkToken");
-    setLinkToken(null);
-
-    // Reset copy status on component mount (page refresh)
-    setCopyStatus(false);
-
-    // Retrieve linkToken from local storage if available
-    const storedLinkToken = localStorage.getItem("linkToken");
-    if (storedLinkToken) {
-      setLinkToken(storedLinkToken);
-      openLink(storedLinkToken);
-    }
-
     // Retrieve login state from localStorage
     const storedIsLoggedIn = localStorage.getItem("isLoggedIn");
     const storedClientId = localStorage.getItem("clientId");
@@ -80,69 +96,33 @@ export const App: React.FC = () => {
       setIsLoggedIn(true);
       setUsername(storedClientId);
     }
-    // Make API call to get integration IDs on page load -- TODO: Update the function name
-    handleGetIntegrationId();
   }, []);
 
-  const handleGetIntegrationId = useCallback(async () => {
-    try {
-      // Reset copy status when fetching a new integration id
-      // setCopyStatus(false)
-
-      console.log("Request URL:", `${meshMiddlewareApiUrl}/meshintegrations`); // Debugging log
-      const response = await fetch(`${meshMiddlewareApiUrl}/meshintegrations`, {
-        method: "GET",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to get integration id");
-      }
-
-      const data = await response.json();
-      console.log("Integration ID response:", data); // Debugging log
-
-      // Extract unique categories and types
-      const uniqueCategories: string[] = Array.from(
-        new Set(
-          data.content.items.flatMap((item: IntegrationItem) => item.categories)
-        )
-      );
-      const uniqueTypes: string[] = Array.from(
-        new Set(data.content.items.map((item: IntegrationItem) => item.type))
-      );
-
-      // Create a mapping object to store the id for each combination of category and type
-      const map: { [key: string]: { [key: string]: string } } = {};
-      data.content.items.forEach((item: IntegrationItem) => {
-        item.categories.forEach((category: string) => {
-          if (!map[category]) {
-            map[category] = {};
-          }
-          map[category][item.type] = item.id;
-        });
-      });
-
-      setCategories(uniqueCategories);
-      setTypes(uniqueTypes);
-      setCategoryTypeMap(map);
-
-      // setIntegrationId(data.integrationId)
-    } catch (err) {
-      console.error("Error fetching integration id:", err); // Log the error
-      setError((err as Error).message);
-    }
-  }, []);
-
-  // Save the selected category, type and integration id to the database for future reference
+  /**
+   * Handles the save selection process by constructing a document ID, storing it in local storage,
+   * and sending the selected integration data to the server.
+   *
+   * @async
+   * @function handleSaveSelection
+   * @throws Will throw an error if the fetch request fails.
+   *
+   * @remarks
+   * The function performs the following steps:
+   * 1. Constructs a document ID using `clientId`, `selectedCategory`, and `selectedType` with an underscore.
+   * 2. Stores the constructed document ID and `integrationId` in local storage.
+   * 3. Creates an object `selectedIntegration` containing the necessary data.
+   * 4. Sends a POST request to the server with the `selectedIntegration` data.
+   * 5. If the request is successful, updates the state with the new document ID and sets a success message.
+   * 6. If the request fails, logs the error and sets an error message.
+   */
   const handleSaveSelection = async () => {
     try {
       const docId = `${clientId}_${selectedCategory}_${selectedType}`; // Construct the client Doc ID directly
-      console.log("Client Doc ID:", docId); // Debugging log
       localStorage.setItem("clientDocId", docId); // Store clientDocId in local storage
       localStorage.setItem("integrationId", integrationId); // Store integrationId in local storage
+      console.log("handleSaveSelection -> ClientDocId:", docId); // Debugging log
 
-      // setClientDocId(`${clientId}_${selectedCategory}_${selectedType}`); // Set the client Doc ID as a combination of username, category and type with an underscore
-      // console.log("Client Doc ID:", clientDocId); // Debugging log
+      // console.log("handleSaveSelection -> Client Doc ID:", clientDocId); // Debugging log
       const selectedIntegration = {
         _id: docId, // // Use the constructed Doc ID
         clientId: clientId, // Username of the client
@@ -165,10 +145,10 @@ export const App: React.FC = () => {
       }
 
       const data = await response.json();
-      console.log("Save selection response:", data); // Debugging log
+      console.log("handleSaveSelection -> Save selection response:", data); // Debugging log
       // Update the state after the save operation
       setClientDocId(docId);
-      console.log("handleSaveSelection >> Client Doc ID:", clientDocId); // Debugging log
+      console.log(" handleSaveSelection -> ClientDocId:", clientDocId); // Debugging log
       setSuccessMessage(
         `Selection saved successfully with data: ${JSON.stringify(
           selectedIntegration,
@@ -177,27 +157,45 @@ export const App: React.FC = () => {
         )}`
       );
     } catch (err) {
-      console.error("Error saving selection:", err); // Log the error
+      console.error("handleSaveSelection -> Error saving selection:", err); // Log the error
       setError((err as Error).message);
     }
   };
 
+  /**
+   * Handles the launch of the link by fetching a link token and opening the link.
+   *
+   * This function performs the following steps:
+   * 1. Checks if the integrationId is available. If not, sets an error message.
+   * 2. Sends a POST request to the mesh middleware API to fetch a link token.
+   * 3. If the request fails, throws an error.
+   * 4. Parses the response to extract the link token.
+   * 5. Sets the link token in the state.
+   * 6. Stores the link token in local storage.
+   * 7. Opens the link using the fetched link token.
+   *
+   * @async
+   * @function handleLaunchLink
+   * @throws Will throw an error if the request to fetch the link token fails.
+   */
   const handleLaunchLink = useCallback(async () => {
-    const idToUse = inputIntegrationId || integrationId; // TODO: Remove inputIntegrationId and use integrationId only
-    if (!idToUse) {
+    if (!integrationId) {
       setError("Please get or enter the integration id first");
       return;
     }
-    console.log("handleLaunchLink -- userId", clientId); // Debugging log
+    console.log("handleLaunchLink -> userId", clientId); // Debugging log
 
     try {
-      console.log("Request URL:", `${meshMiddlewareApiUrl}/linktoken`); // Debugging log
+      // console.log("Request URL:", `${meshMiddlewareApiUrl}/linktoken`); // Debugging log
       const response = await fetch(`${meshMiddlewareApiUrl}/linktoken`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userId: clientId, integrationId: idToUse }), // userId is the username of the client
+        body: JSON.stringify({
+          userId: clientId, // userId is the username of the client
+          integrationId: integrationId,
+        }),
       });
 
       if (!response.ok) {
@@ -205,21 +203,26 @@ export const App: React.FC = () => {
       }
 
       const data = await response.json();
-      console.log("Link Token response:", data); // Debugging log
+      console.log("handleLaunchLink -> linktoken api response:", data); // Debugging log
       setLinkToken(data.content.linkToken);
-      // Save linkToken in PouchDB -- leaving it here tonight -- start fron here tomorrow
 
       localStorage.setItem("linkToken", data.content.linkToken); // Store linkToken in local storage
       openLink(data.content.linkToken); // Logic to connect to Coinbase account using the link token
-
-      // // Update the document with link token and integration payload data.
-      // await updateDocWithData(`${clientId}_${selectedCategory}_${selectedType}`, data.content.linkToken, integrationPayload)
     } catch (err) {
       setError((err as Error).message);
     }
-  }, [inputIntegrationId, integrationId, clientDocId]);
+  }, [integrationId, clientDocId]);
 
-  // update to db function
+  /**
+   * Updates a document in the database with the provided data.
+   *
+   * @param {string} id - The unique identifier of the document to be updated.
+   * @param {string} linkToken - The link token associated with the document.
+   * @param {IntegrationPayload} integrationPayload - The payload containing integration data.
+   * @throws {Error} Throws an error if the integration payload structure is invalid.
+   * @throws {Error} Throws an error if the response from the server is not ok.
+   * @returns {Promise<void>} A promise that resolves when the document is successfully updated.
+   */
   const updateDocWithData = async (
     id: string,
     linkToken: string,
@@ -248,7 +251,7 @@ export const App: React.FC = () => {
           _id: id,
           linkToken,
           accessToken,
-          integrationPayload,
+          integrationPayload, // for future use
         }),
       });
 
@@ -258,49 +261,76 @@ export const App: React.FC = () => {
       }
 
       const data = await response.json();
-      console.log("Update document response:", data); // Debugging log
+      console.log("updateDocWithData -> update doc response:", data); // Debugging log
       setSuccessMessage(
         `Database updated with data: ${JSON.stringify({ data }, null, 2)}`
       );
     } catch (err) {
-      console.error("Error updating document:", err); // Log the error
+      console.error("updateDocWithData -> Error updating doc:", err); // Log the error
       setError((err as Error).message);
     }
   };
 
+  /**
+   * Opens a link using the provided token and sets up various event handlers.
+   *
+   * @param {string} token - The token used to open the link.
+   *
+   * The function sets up the following event handlers:
+   * - `onIntegrationConnected`: Logs the integration payload and updates the state with the integration payload.
+   * - `onExit`: Logs any errors and the summary if available.
+   * - `onTransferFinished`: Logs the transfer data when the transfer is finished.
+   * - `onEvent`: Handles various events, specifically the `integrationConnected` event to update the document with the link token and integration payload data.
+   *
+   * The function also logs debugging information and updates the document with the integration payload data when the `integrationConnected` event occurs.
+   */
   const openLink = (token: string) => {
-    console.log("clientId, clientDocId:", clientId, clientDocId); // Debugging log
+    console.log("openLink -> clientId, clientDocId:", clientId, clientDocId); // Debugging log
     const meshLink = createLink({
       clientId: clientId,
       onIntegrationConnected: (payload) => {
-        console.log("Integration connected:", payload);
+        console.log("openLink -> Integration connected:", payload);
       },
       onExit: (error, summary) => {
         if (error) {
-          console.error("Error:", error);
+          console.error("openLink -> Error:", error);
         }
         if (summary) {
-          console.log("Summary:", summary);
+          console.log("openLink -> Summary:", summary);
         }
       },
       onTransferFinished: (transferData) => {
-        console.log("Transfer finished:", transferData);
+        console.log("openLink -> Transfer finished:", transferData);
       },
       onEvent: (event) => {
-        console.log("Event:", event);
+        console.log("openLink -> Event:", event);
         if (event.type === "integrationConnected") {
           const payload = event.payload as IntegrationPayload;
           setIntegrationPayload(payload); // Set the integration payload state
           // Update the document with link token and integration payload data.
           updateDocWithData(clientDocId, token, payload);
-          console.log("Updated Doc with integration payload:", payload);
+          console.log(
+            "openLink -> Updated Doc with integration payload:",
+            payload
+          );
         }
       },
     });
     meshLink.openLink(token);
   };
 
-  //   handleFetchPortfolio is fetching the holdings of the user
+  /**
+   * Fetches the portfolio data based on the selected category, type, and clientId.
+   * Constructs a unique Id using the clientId, selected category, and selected type.
+   * Sends a POST request to the mesh middleware API to retrieve the portfolio data.
+   * If the request is successful, updates the portfolio state with the fetched data.
+   * If the request fails, sets an error message.
+   *
+   * @async
+   * @function handleFetchPortfolio
+   * @returns {Promise<void>} A promise that resolves when the portfolio data is fetched and state is updated.
+   * @throws {Error} Throws an error if the fetch request fails.
+   */
   const handleFetchPortfolio = useCallback(async () => {
     try {
       const id = `${clientId}_${selectedCategory}_${selectedType}`;
@@ -325,7 +355,20 @@ export const App: React.FC = () => {
     }
   }, [selectedCategory, selectedType, clientId]);
 
-  // handleAggregatePortfolio is fetching the aggregated holdings of the user
+  /**
+   * Fetches the aggregated portfolio data for the specified clientId.
+   *
+   * This function makes an asynchronous GET request to the mesh middleware API
+   * to retrieve the aggregated portfolio data for the user identified by `clientId`.
+   * If the request is successful, the response data is set to the state using
+   * `setAggregatedPortfolio`. If the request fails, an error message is set using
+   * `setError`.
+   *
+   * @async
+   * @function handleFetchAggregatedPortfolio
+   * @returns {Promise<void>} A promise that resolves when the fetch operation is complete.
+   * @throws {Error} Throws an error if the fetch operation fails.
+   */
   const handleFetchAggregatedPortfolio = useCallback(async () => {
     try {
       const id = `${clientId}`;
@@ -352,11 +395,12 @@ export const App: React.FC = () => {
     }
   }, [selectedCategory, selectedType, clientId]);
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopyStatus(true);
-    //setTimeout(() => setCopyStatus(false), 2000) // Reset copy status after 2 seconds
-  };
+  // For testing and debugging purposes only
+  // const handleCopy = (text: string) => {
+  //   navigator.clipboard.writeText(text);
+  //   setCopyStatus(true);
+  //   //setTimeout(() => setCopyStatus(false), 2000) // Reset copy status after 2 seconds
+  // };
 
   useEffect(() => {
     if (selectedCategory && selectedType) {
@@ -399,237 +443,176 @@ export const App: React.FC = () => {
     localStorage.removeItem("clientId");
     localStorage.removeItem("clientDocId");
     localStorage.removeItem("integrationId");
+    localStorage.removeItem("linkToken");
     setClientDocId("");
     setError(null);
     setIntegrationId("");
     setLinkToken(null);
     setPortfolio(null);
     setAggregatedPortfolio(null);
-    setPaymentStatus(null);
-    setCopyStatus(false);
-    setInputIntegrationId("");
     setIntegrationPayload(null);
-    setCategories([]);
-    setTypes([]);
     setSelectedCategory("");
     setSelectedType("");
-    setCategoryTypeMap({});
     setSuccessMessage(null);
   };
 
   return (
-    <NetworkProvider>
-      <Container>
-        {!isLoggedIn ? (
-          <Login onLogin={handleLogin} />
-        ) : (
-          <div>
-            <Section>
-              <Title>
-                Welcome, {clientId}! <span></span> Mesh Connect App
-              </Title>
-              <Button onClick={handleLogout}>Logout</Button>
-              <p>
-                <strong>User ID: </strong> {clientId}
-              </p>
-            </Section>
+    <Container>
+      {!isLoggedIn ? (
+        <Login onLogin={handleLogin} />
+      ) : (
+        <div>
+          <Section>
+            <Title>
+              Welcome, {clientId}! <span></span> Mesh Connect App
+            </Title>
+            <Button onClick={handleLogout}>Logout</Button>
+            <p>
+              <strong>User ID: </strong> {clientId}
+            </p>
+          </Section>
 
-            <Section>
-              <Title>Select Connected Account Category & Type</Title>
+          {/* Selection Section Component */}
+          <SelectionSection
+            categories={categories}
+            types={types}
+            selectedCategory={selectedCategory}
+            selectedType={selectedType}
+            integrationId={integrationId}
+            setSelectedCategory={setSelectedCategory}
+            setSelectedType={setSelectedType}
+            handleSaveSelection={handleSaveSelection}
+          ></SelectionSection>
+
+          {/* Link Selection Component */}
+          <LinkSection
+            clientId={clientId}
+            integrationId={integrationId}
+            linkToken={linkToken}
+            integrationPayload={integrationPayload}
+            handleLaunchLink={handleLaunchLink}
+          ></LinkSection>
+
+          <Section>
+            <Title>Coinbase Portfolio & Holdings</Title>
+            <Button onClick={handleFetchPortfolio}>Fetch Holdings</Button>
+            <span> </span>
+            <Button onClick={handleFetchAggregatedPortfolio}>
+              Fetch Aggregated Portfolio
+            </Button>
+
+            {portfolio && (
               <div>
-                <Label htmlFor="category">Category:</Label>
-                <Select
-                  id="category"
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  <option value="">Select Category</option>
-                  {categories.map((category, index) => (
-                    <option key={index} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="type">Type:</Label>
-                <Select
-                  id="type"
-                  value={selectedType}
-                  onChange={(e) => setSelectedType(e.target.value)}
-                >
-                  <option value="">Select Type</option>
-                  {types.map((type, index) => (
-                    <option key={index} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              {integrationId && (
-                <IntegrationIdDisplay>
-                  <strong>Selected ID:</strong> {integrationId}
-                </IntegrationIdDisplay>
-              )}
-              <Button onClick={handleSaveSelection}>Save Selection</Button>
-            </Section>
-
-            <Section>
-              <Title>Launch Link & Connect to Coinbase</Title>
-              {integrationId && (
-                <div>
-                  <p>
-                    <strong>User Id: </strong> {clientId}
-                  </p>
-                  <p>
-                    <strong>Coinbase Integration Id: </strong>
-                    {integrationId}
-                  </p>
-                </div>
-              )}
-              <Button onClick={handleLaunchLink}>Launch Link</Button>
-              {/* Debugging & testing purpose only */}
-              {/* {linkToken && (
-                <p style={{ wordWrap: "break-word" }}>
-                  <strong>Link Token:</strong> {linkToken}
-                </p>
-              )} */}
-              {integrationPayload && (
-                <p>
-                  <strong>Message: </strong>Coinbase Exchange - Connected
-                  Successfully! <br></br>
-                </p>
-                // debugging purposes
-                //   <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}><strong>Message: <br></br> </strong>
-                //     {JSON.stringify(integrationPayload, null, 2)}
-                //   </pre>
-              )}
-            </Section>
-
-            <Section>
-              <Title>Coinbase Portfolio & Holdings</Title>
-              <Button onClick={handleFetchPortfolio}>Fetch Holdings</Button>
-              <span> </span>
-              <Button onClick={handleFetchAggregatedPortfolio}>
-                Fetch Aggregated Portfolio
-              </Button>
-
-              {portfolio && (
-                <div>
-                  <Title>Coinbase Holdings</Title>
-                  <Table>
-                    <thead>
-                      <Tr>
-                        <Th>Name</Th>
-                        <Th>Symbol</Th>
-                        <Th>Amount</Th>
-                        <Th>Cost Basis</Th>
-                      </Tr>
-                    </thead>
-                    <tbody>
-                      {portfolio.content.cryptocurrencyPositions.map(
-                        (item: any, index: number) => (
-                          <Tr key={index}>
-                            <Td>{item.name}</Td>
-                            <Td>{item.symbol}</Td>
-                            <Td>{item.amount}</Td>
-                            <Td>${item.costBasis}</Td>
-                          </Tr>
-                        )
-                      )}
-                    </tbody>
-                  </Table>
-                  {/* Debugging & testing purpose only */}
-                  {/* <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}><strong>Coinbase Portfolio JSON:<br></br> </strong>
+                <Title>Coinbase Holdings</Title>
+                <Table>
+                  <thead>
+                    <Tr>
+                      <Th>Name</Th>
+                      <Th>Symbol</Th>
+                      <Th>Amount</Th>
+                      <Th>Cost Basis</Th>
+                    </Tr>
+                  </thead>
+                  <tbody>
+                    {portfolio.content.cryptocurrencyPositions.map(
+                      (item: any, index: number) => (
+                        <Tr key={index}>
+                          <Td>{item.name}</Td>
+                          <Td>{item.symbol}</Td>
+                          <Td>{item.amount}</Td>
+                          <Td>${item.costBasis}</Td>
+                        </Tr>
+                      )
+                    )}
+                  </tbody>
+                </Table>
+                {/* Debugging & testing purpose only */}
+                {/* <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}><strong>Coinbase Portfolio JSON:<br></br> </strong>
               {JSON.stringify(portfolio, null, 2)}
             </pre> */}
-                </div>
-              )}
-              {aggregatedPortfolio && (
-                <div>
-                  <Title>Coinbase Portfolio</Title>
-                  <p>
-                    <strong>Portfolio Cost Basis:</strong> $
-                    {aggregatedPortfolio.content.portfolioCostBasis}
-                  </p>
-                  <p>
-                    <strong>Actual Portfolio Performance:</strong>{" "}
-                    {aggregatedPortfolio.content.actualPortfolioPerformance}%
-                  </p>
-                  <p>
-                    <strong>Equities Value:</strong> $
-                    {aggregatedPortfolio.content.equitiesValue}
-                  </p>
-                  <p>
-                    <strong>Cryptocurrencies Value:</strong> $
-                    {aggregatedPortfolio.content.cryptocurrenciesValue}
-                  </p>
-                  <p>
-                    <strong>NFTs Value:</strong> $
-                    {aggregatedPortfolio.content.nftsValue}
-                  </p>
-                  <Table>
-                    <thead>
-                      <Tr>
-                        <Th>Company Name</Th>
-                        <Th>Symbol</Th>
-                        <Th>Amount</Th>
-                        <Th>Cost Basis</Th>
-                        <Th>Market Value</Th>
-                        <Th>Last Price</Th>
-                        <Th>Portfolio Percentage</Th>
-                        <Th>Total Return</Th>
-                        <Th>Return Percentage</Th>
-                      </Tr>
-                    </thead>
-                    <tbody>
-                      {aggregatedPortfolio.content.cryptocurrencyPositions.map(
-                        (item: any, index: number) => (
-                          <Tr key={index}>
-                            <Td>{item.companyName}</Td>
-                            <Td>{item.symbol}</Td>
-                            <Td>{item.amount}</Td>
-                            <Td>${item.costBasis}</Td>
-                            <Td>${item.marketValue}</Td>
-                            <Td>${item.lastPrice}</Td>
-                            <Td>{item.portfolioPercentage}%</Td>
-                            <Td>${item.totalReturn}</Td>
-                            <Td>{item.returnPercentage}%</Td>
-                          </Tr>
-                        )
-                      )}
-                    </tbody>
-                  </Table>
-                  {/* Debugging & testing purpose only */}
-                  {/* <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+              </div>
+            )}
+            {aggregatedPortfolio && (
+              <div>
+                <Title>Coinbase Portfolio</Title>
+                <p>
+                  <strong>Portfolio Cost Basis:</strong> $
+                  {aggregatedPortfolio.content.portfolioCostBasis}
+                </p>
+                <p>
+                  <strong>Actual Portfolio Performance:</strong>{" "}
+                  {aggregatedPortfolio.content.actualPortfolioPerformance}%
+                </p>
+                <p>
+                  <strong>Equities Value:</strong> $
+                  {aggregatedPortfolio.content.equitiesValue}
+                </p>
+                <p>
+                  <strong>Cryptocurrencies Value:</strong> $
+                  {aggregatedPortfolio.content.cryptocurrenciesValue}
+                </p>
+                <p>
+                  <strong>NFTs Value:</strong> $
+                  {aggregatedPortfolio.content.nftsValue}
+                </p>
+                <Table>
+                  <thead>
+                    <Tr>
+                      <Th>Company Name</Th>
+                      <Th>Symbol</Th>
+                      <Th>Amount</Th>
+                      <Th>Cost Basis</Th>
+                      <Th>Market Value</Th>
+                      <Th>Last Price</Th>
+                      <Th>Portfolio Percentage</Th>
+                      <Th>Total Return</Th>
+                      <Th>Return Percentage</Th>
+                    </Tr>
+                  </thead>
+                  <tbody>
+                    {aggregatedPortfolio.content.cryptocurrencyPositions.map(
+                      (item: any, index: number) => (
+                        <Tr key={index}>
+                          <Td>{item.companyName}</Td>
+                          <Td>{item.symbol}</Td>
+                          <Td>{item.amount}</Td>
+                          <Td>${item.costBasis}</Td>
+                          <Td>${item.marketValue}</Td>
+                          <Td>${item.lastPrice}</Td>
+                          <Td>{item.portfolioPercentage}%</Td>
+                          <Td>${item.totalReturn}</Td>
+                          <Td>{item.returnPercentage}%</Td>
+                        </Tr>
+                      )
+                    )}
+                  </tbody>
+                </Table>
+                {/* Debugging & testing purpose only */}
+                {/* <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
               {JSON.stringify(aggregatedPortfolio, null, 2)}
             </pre> */}
-                </div>
-              )}
-            </Section>
-            {/* Payment flow using Managed Transfer APIs (PreviewTransfer, ExecuteTransfer) */}
-            <PaymentFlow
-              clientDocId={clientDocId}
-              selectedType={selectedType}
-            />
-
-            {/* Payment flow using Link Token */}
-            <LinkUIPaymentFlow
-              clientDocId={clientDocId}
-              selectedType={selectedType}
-            />
-
-            {error && <ErrorModal message={error} onClose={closeModal} />}
-            {successMessage && (
-              <SuccessModal
-                message={successMessage}
-                onClose={closeSuccessModal}
-              />
+              </div>
             )}
-          </div>
-        )}
-      </Container>
-    </NetworkProvider>
+          </Section>
+          {/* Payment flow using Managed Transfer APIs (PreviewTransfer, ExecuteTransfer) */}
+          <PaymentFlow clientDocId={clientDocId} selectedType={selectedType} />
+
+          {/* Payment flow using Link Token */}
+          <LinkUIPaymentFlow
+            clientDocId={clientDocId}
+            selectedType={selectedType}
+          />
+
+          {error && <ErrorModal message={error} onClose={closeModal} />}
+          {successMessage && (
+            <SuccessModal
+              message={successMessage}
+              onClose={closeSuccessModal}
+            />
+          )}
+        </div>
+      )}
+    </Container>
   );
 };
 

@@ -1,41 +1,41 @@
 export interface IntegrationItem {
-  id: string
-  name: string
-  type: string
-  categories: string[]
+  id: string;
+  name: string;
+  type: string;
+  categories: string[];
   style: {
-    fieldActiveLight: string
-    buttonPrimaryLight: string
-    buttonHoverLight: string
-    buttonTextLight: string
-    buttonTextHoverLight: string
-    fieldActiveDark: string
-    buttonPrimaryDark: string
-    buttonHoverDark: string
-    buttonTextDark: string
-    buttonTextHoverDark: string
-  }
+    fieldActiveLight: string;
+    buttonPrimaryLight: string;
+    buttonHoverLight: string;
+    buttonTextLight: string;
+    buttonTextHoverLight: string;
+    fieldActiveDark: string;
+    buttonPrimaryDark: string;
+    buttonHoverDark: string;
+    buttonTextDark: string;
+    buttonTextHoverDark: string;
+  };
   logo: {
-    logoLightUrl: string
-    logoDarkUrl: string
-    logoWhiteUrl: string
-    logoBlackUrl: string
-    logoColorUrl: string
-    iconLightUrl: string
-    iconDarkUrl: string
-    iconWhiteUrl: string
-    iconBlackUrl: string
-    iconColorUrl: string
-    base64Logo: string
-  }
-  forgotPasswordLink: string
-  cryptoTransfersSupported: boolean
+    logoLightUrl: string;
+    logoDarkUrl: string;
+    logoWhiteUrl: string;
+    logoBlackUrl: string;
+    logoColorUrl: string;
+    iconLightUrl: string;
+    iconDarkUrl: string;
+    iconWhiteUrl: string;
+    iconBlackUrl: string;
+    iconColorUrl: string;
+    base64Logo: string;
+  };
+  forgotPasswordLink: string;
+  cryptoTransfersSupported: boolean;
 }
 
 export interface IntegrationResponse {
   content: {
-    items: IntegrationItem[]
-  }
+    items: IntegrationItem[];
+  };
 }
 
 export interface Balance {
@@ -75,4 +75,17 @@ export interface AccessToken {
 
 export interface IntegrationPayload {
   accessToken: AccessToken;
+}
+
+export interface IntegrationItem {
+  id: string;
+  name: string;
+  type: string;
+  categories: string[];
+}
+
+export interface IntegrationResponse {
+  content: {
+    items: IntegrationItem[];
+  };
 }
