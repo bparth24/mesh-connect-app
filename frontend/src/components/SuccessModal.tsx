@@ -1,41 +1,29 @@
-import React, { useEffect } from 'react';
-import styled from 'styled-components';
+import React, { useEffect } from "react";
+import { ModalBackground, ModalContent, CloseButton } from "./StyledComponents";
 
-const ModalBackground = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
-const ModalContent = styled.div`
-  background-color: white;
-  padding: 20px;
-  border-radius: 5px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  position: relative;
-`;
-
-const CloseButton = styled.button`
-  background-color: transparent;
-  border: none;
-  font-size: 20px;
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  cursor: pointer;
-`;
-
+/**
+ * Props for the SuccessModal component.
+ *
+ * @interface SuccessModalProps
+ * @property {string} message - The success message to display in the modal.
+ * @property {() => void} onClose - Callback function to handle the closing of the modal.
+ */
 interface SuccessModalProps {
   message: string;
   onClose: () => void;
 }
 
+/**
+ * SuccessModal component displays a modal with a success message and automatically closes after 5 seconds.
+ *
+ * @component
+ * @param {Object} props - The props object.
+ * @param {string} props.message - The success message to display in the modal.
+ * @param {function} props.onClose - The function to call when the modal is closed.
+ *
+ * @example
+ * <SuccessModal message="Operation successful!" onClose={handleClose} />
+ */
 const SuccessModal: React.FC<SuccessModalProps> = ({ message, onClose }) => {
   useEffect(() => {
     const timer = setTimeout(onClose, 5000);
