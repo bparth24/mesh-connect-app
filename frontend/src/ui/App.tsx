@@ -27,7 +27,8 @@ import ErrorModal from "../components/ErrorModal";
 import SuccessModal from "../components/SuccessModal";
 import Login from "../components/Login";
 import PaymentFlow from "../components/PaymentFlow";
-import PaymentFlow2 from "../components/PaymentFlow2";
+import LinkUIPaymentFlow from "../components/LinkUIPaymentFlow";
+// import PaymentFlow2 from "../components/PaymentFlow2";
 
 export const App: React.FC = () => {
   // State for login/logout
@@ -35,10 +36,8 @@ export const App: React.FC = () => {
   const [clientId, setUsername] = useState<string>(""); // Username of the client only - Initialize as empty string
   const [clientDocId, setClientDocId] = useState<string>(""); // Document ID for the client in the format of username_category_type (e.g., alice_exchange_coinbase) - Initialize as empty string
   const [error, setError] = useState<string | null>(null);
-  const [integrationId, setIntegrationId] = useState<string | null>(null);
+  const [integrationId, setIntegrationId] = useState<string>("");
   const [linkToken, setLinkToken] = useState<string | null>(null);
-  //   const [accessToken, setAccessToken] = useState<string | null>(null)
-  //   const [refreshToken, setRefreshToken] = useState<string | null>(null)
   const [portfolio, setPortfolio] = useState<any | null>(null);
   const [aggregatedPortfolio, setAggregatedPortfolio] = useState<any | null>(
     null
@@ -139,6 +138,7 @@ export const App: React.FC = () => {
       const docId = `${clientId}_${selectedCategory}_${selectedType}`; // Construct the client Doc ID directly
       console.log("Client Doc ID:", docId); // Debugging log
       localStorage.setItem("clientDocId", docId); // Store clientDocId in local storage
+      localStorage.setItem("integrationId", integrationId); // Store integrationId in local storage
 
       // setClientDocId(`${clientId}_${selectedCategory}_${selectedType}`); // Set the client Doc ID as a combination of username, category and type with an underscore
       // console.log("Client Doc ID:", clientDocId); // Debugging log
@@ -359,7 +359,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     if (selectedCategory && selectedType) {
-      const id = categoryTypeMap[selectedCategory]?.[selectedType] || null;
+      const id = categoryTypeMap[selectedCategory]?.[selectedType];
       setIntegrationId(id);
     }
   }, [selectedCategory, selectedType, categoryTypeMap]);
@@ -385,9 +385,10 @@ export const App: React.FC = () => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("clientId");
     localStorage.removeItem("clientDocId");
+    localStorage.removeItem("integrationId");
     setClientDocId("");
     setError(null);
-    setIntegrationId(null);
+    setIntegrationId("");
     setLinkToken(null);
     setPortfolio(null);
     setAggregatedPortfolio(null);
@@ -611,20 +612,14 @@ export const App: React.FC = () => {
               </div>
             )}
           </Section>
-
+          {/* Payment flow using Managed Transfer APIs (PreviewTransfer, ExecuteTransfer) */}
           <PaymentFlow clientDocId={clientDocId} selectedType={selectedType} />
 
-          {/* <Section>
-        <Title>Payment Flow</Title>
-        <Button onClick={handlePayment}>Pay $50 for Shoes</Button>
-        {paymentStatus && <p>Payment Status: {paymentStatus}</p>}
-      </Section> */}
-
-          {/* {error && (
-        <Section style={{ backgroundColor: '#fff3f3' }}>
-          <p style={{ color: theme.colors.error }}>{error}</p>
-        </Section>
-      )} */}
+          {/* Payment flow using Link Token */}
+          <LinkUIPaymentFlow
+            clientDocId={clientDocId}
+            selectedType={selectedType}
+          />
 
           {error && <ErrorModal message={error} onClose={closeModal} />}
           {successMessage && (

@@ -194,5 +194,8 @@ export const FormColumn = styled.div<{ flexValue?: number }>`
 `;
 
 export const PaymentStatus = styled.p<{ status: string | null }>`
-  color: ${(props) => (props.status === "succeeded" ? "green" : "red")};
+  color: ${(props) =>
+    props.status === "succeeded" || props.status === "success"
+      ? "green"
+      : "red"};
 `;

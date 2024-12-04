@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Section,
   Title,
@@ -15,9 +15,10 @@ import {
   PaymentStatus,
   theme,
 } from "./StyledComponents";
-import { clientId, meshMiddlewareApiUrl } from "../utility/config";
+import { meshMiddlewareApiUrl } from "../utility/config";
 import ErrorModal from "./ErrorModal";
 import SuccessModal from "./SuccessModal";
+import { createLink } from "@meshconnect/web-link-sdk";
 
 interface Network {
   id: string;
@@ -26,15 +27,18 @@ interface Network {
   supportedTokens: string[];
 }
 
-interface PaymentFlowProps {
+interface LinkUIPaymentFlowProps {
   clientDocId: string;
   selectedType: string;
 }
 
-const PaymentFlow: React.FC<PaymentFlowProps> = ({
+const LinkUIPaymentFlow: React.FC<LinkUIPaymentFlowProps> = ({
   clientDocId,
   selectedType,
 }) => {
+  const [username, setClientId] = useState<string>(
+    localStorage.getItem("clientId") || ""
+  );
   const [amount, setAmount] = useState<number>(50);
   const [currency, setCurrency] = useState<string>("USDC");
   const [toAddress, setToAddress] = useState<string>(
@@ -48,9 +52,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isConfirming, setIsConfirming] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [previewId, setPreviewId] = useState<string | null>(null);
-  const [previewResponse, setPreviewResponse] = useState<any>(null);
-  const [executeResponse, setExecuteResponse] = useState<any>(null);
+  const [transferData, setTransferData] = useState<any | null>(null);
 
   useEffect(() => {
     fetchNetworks();
@@ -103,78 +105,73 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
     }
   };
 
-  const handlePreviewTransfer = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch(`${meshMiddlewareApiUrl}/previewtransfer`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+  const openLink = (token: string) => {
+    const meshLink = createLink({
+      clientId: username,
+      onIntegrationConnected: (payload) => {
+        console.log("Integration connected:", payload);
+      },
+      onExit: (error, summary) => {
+        if (error) {
+          console.error("Error:", error);
+        }
+        if (summary) {
+          console.log("Summary:", summary);
+        }
+      },
+      onTransferFinished: (transferData) => {
+        console.log("Transfer finished:", transferData);
+        setTransferData(transferData);
+        setPaymentStatus(transferData.status);
+        // TODO: set transfer data to the state.
+      },
+      onEvent: (event) => {
+        console.log("Event:", event);
+        // TODO: set event data to the state & database.
+      },
+    });
+    meshLink.openLink(token);
+  };
 
-        body: JSON.stringify({
-          userId: clientDocId,
-          fromType: selectedType,
-          networkId: selectedNetworkId,
+  // Function to handle link token payment flow
+  const handlePaymentUsingLinkUI = useCallback(async () => {
+    const transferOptions = {
+      toAddresses: [
+        {
+          address: toAddress,
           symbol: currency,
-          toAddress: toAddress,
-          amountInFiat: amount,
-          fiatCurrency: "USD", // Hardcoded to USD for now
-        }),
-      });
+          networkId: selectedNetworkId,
+        },
+      ],
+      amountInFiat: amount,
+      transferType: "payment", // hardcoded for now
+    };
 
-      if (!response.ok) {
-        throw new Error("Preview transfer failed");
-      }
-
-      const data = await response.json();
-      console.log("Preview transfer response:", data); // Debugging log
-
-      if (data.status === "ok" && data.content && data.content.previewResult) {
-        setPreviewId(data.content.previewResult.previewId);
-        setPreviewResponse(data);
-        setIsConfirming(true);
-      } else {
-        throw new Error("Invalid preview transfer response");
-      }
-    } catch (err) {
-      console.error("Error previewing transfer:", err); // Log the error
-      setError((err as Error).message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Execute transfer
-  const handleExecuteTransfer = async () => {
-    setIsLoading(true);
     try {
-      const response = await fetch(`${meshMiddlewareApiUrl}/executetransfer`, {
+      const response = await fetch(`${meshMiddlewareApiUrl}/linktoken`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: clientDocId,
+          userId: username, // username of the user or simply the uinque id of the user not the clientDocId though.
+          transferOptions,
+          integrationId: localStorage.getItem("integrationId"), // Coinbase Integration Id
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Execute transfer failed");
+        throw new Error("Payment failed");
       }
 
       const data = await response.json();
-      console.log("Execute transfer response:", data); // Debugging log
-      setExecuteResponse(data);
-      setPaymentStatus(data.content.status);
-      setSuccessMessage("Payment successful!");
+      console.log("Link UI Payment response:", data); // Debugging log
+      // Open the link UI payment flow
+      openLink(data.content.linkToken);
     } catch (err) {
-      console.error("Error executing transfer:", err); // Log the error
       setError((err as Error).message);
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [selectedNetworkId]);
 
   const closeModal = () => {
     setError(null);
@@ -186,7 +183,7 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
 
   return (
     <Section>
-      <Title>Payment Flow</Title>
+      <Title>Link UI Payment Flow</Title>
       <DescriptionCard>
         <DescriptionText>
           Pay $50 in Fiat using USDC tokens from Connected Account (e.g.
@@ -251,43 +248,18 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
               ))}
             </Select>
           </div>
-
-          {!isConfirming ? (
-            <div>
-              <Button onClick={handlePreviewTransfer} disabled={isLoading}>
-                {isLoading ? "Processing..." : "Preview Transfer"}
-              </Button>
-            </div>
-          ) : (
-            <div>
-              <p>
-                <strong>Confirm Payment Details:</strong>
-              </p>
-              <p>Amount (USD): ${amount}</p>
-              <p>From Account Type: {selectedType}</p>
-              <p>To Address: {toAddress}</p>
-              <p>
-                Network:{" "}
-                {
-                  networks.find((network) => network.id === selectedNetworkId)
-                    ?.name
-                }
-              </p>
-              <p>Token: {currency}</p>
-
-              <Button onClick={handleExecuteTransfer} disabled={isLoading}>
-                {isLoading ? "Processing..." : "Confirm Pay"}
-              </Button>
-              {/* Debugging & Testing Purpose Only */}
-              {executeResponse && (
-                <div>
-                  <h3>Confirm Pay Response</h3>
-                  <pre>{JSON.stringify(executeResponse, null, 2)}</pre>
-                </div>
-              )}
-            </div>
-          )}
-
+          <div>
+            <Button onClick={handlePaymentUsingLinkUI}>Pay</Button>
+          </div>
+          <div>
+            {/* Debugging & Testing Purpose Only */}
+            {transferData && (
+              <div>
+                <h3>Transfer Finished Response</h3>
+                <pre>{JSON.stringify(transferData, null, 2)}</pre>
+              </div>
+            )}
+          </div>
           {paymentStatus && (
             <PaymentStatus status={paymentStatus}>
               Payment Status: {paymentStatus}
@@ -311,19 +283,10 @@ const PaymentFlow: React.FC<PaymentFlowProps> = ({
               <strong>Description:</strong> A pair of stylish shoes.
             </DescriptionText>
           </ImageContainer>
-          <div>
-            {/* Debugging & Testing Purpose Only */}
-            {previewResponse && (
-              <div>
-                <h3>Preview Transfer Response</h3>
-                <pre>{JSON.stringify(previewResponse, null, 2)}</pre>
-              </div>
-            )}
-          </div>
         </FormColumn>
       </FormContainer>
     </Section>
   );
 };
 
-export default PaymentFlow;
+export default LinkUIPaymentFlow;
