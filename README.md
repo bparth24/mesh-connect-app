@@ -45,7 +45,7 @@ Before you begin, ensure you have met the following requirements:
    ```sh
    cd frontend
    npm install or yarn install // TODO: double check
-   cd ../mesh-middleware
+   cd mesh-middleware
    npm install
    ```
 
@@ -62,6 +62,7 @@ Before you begin, ensure you have met the following requirements:
 
 ### Frontend
 
+```sh
 frontend/
 ├── .env
 ├── public/
@@ -94,9 +95,11 @@ frontend/
 ├── index.html
 ├── package.json
 └── ...
+```
 
 ### Mesh-Middleware
 
+```sh
 mesh-middleware/
 ├── controllers/
 │ ├── aggregatedPortfolioController.js
@@ -126,6 +129,7 @@ mesh-middleware/
 ├── .env
 ├── config.js
 ├── package.json
+```
 
 ## Running the Application
 
