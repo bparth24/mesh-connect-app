@@ -129,6 +129,7 @@ mesh-middleware/
 ├── .env
 ├── config.js
 ├── package.json
+└── ...
 ```
 
 ## Running the Application
