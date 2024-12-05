@@ -31,6 +31,20 @@ interface IntegrationProviderProps {
   children: ReactNode;
 }
 
+/**
+ * IntegrationProvider component that provides integration data to its children.
+ *
+ * This component fetches integration data from the mesh middleware API and processes it
+ * to extract unique categories, types, and a mapping object that stores the id for each
+ * combination of category and type. The fetched data is then provided to its children
+ * through the IntegrationContext.
+ *
+ * @component
+ * @param {IntegrationProviderProps} props - The props for the IntegrationProvider component.
+ * @param {React.ReactNode} props.children - The child components that will have access to the integration data.
+ * @returns {JSX.Element} The IntegrationProvider component.
+ *
+ */
 export const IntegrationProvider: React.FC<IntegrationProviderProps> = ({
   children,
 }) => {
