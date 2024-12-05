@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { MESH_SANDBOX_API_BASE_URL, MESH_HEADERS } = require('../config');
-const { handleGetData } = require('../services/pouchDBService');
+const { handleGetData } = require('../services/pouchdbService');
 
 // Portfolios Related API Endpoints
 // Obtain assets from the connected investment account. Performs realtime API call to the underlying integration.
