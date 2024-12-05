@@ -1,12 +1,16 @@
 // Sets up the Express server and defines the routes.
 const express = require('express');
 const cors = require('cors'); // Import the cors middleware
+const path = require('path');
 const meshRoutes = require('./routes/meshRoutes');
 const { handleSaveData, handleGetData, handleUpdateDoc, handleFilterData, displayAllDocs, cleanupAllDocs } = require('./services/pouchdbService');
 
 const app = express();
 app.use(express.json());
 app.use(cors()); // Use the cors middleware
+
+// Serve the generated JSDoc documentation
+app.use('/docs', express.static(path.join(__dirname, 'docs')));
 
 // Mesh Middleware API Endpoints
 app.use('/api', meshRoutes);
@@ -26,6 +30,7 @@ const HOST = process.env.HOST || 'localhost';
 
 const server = app.listen(PORT, () => {
     console.log(`Server running at http://${HOST}:${PORT}/`);
+    console.log(`API documentation is available at http://${HOST}:${PORT}/docs`);
 });
 
 // Cleanup all documents on server shutdown

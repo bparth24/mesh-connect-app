@@ -49,6 +49,84 @@ Before you begin, ensure you have met the following requirements:
    npm install
    ```
 
+4. Generating API Docs:
+
+   ```sh
+   cd ../mesh-middleware
+   npm run generate-docs
+   ```
+
+   Note: API documentation is available at `http://localhost:3001/docs`
+
+## Directory Structure
+
+### Frontend
+
+frontend/
+├── .env
+├── public/
+│ └── ...
+├── src/
+│ ├── components/
+│ │ ├── ErrorModal.tsx
+│ │ ├── LinkSection.tsx
+│ │ ├── LinkUIPaymentFlow.tsx
+│ │ ├── Login.tsx
+│ │ ├── PaymentFlow.tsx
+│ │ ├── PortfolioSection.tsx
+│ │ ├── SelectionSection.tsx
+│ │ ├── StyledComponents.tsx
+│ │ ├── SuccessModal.tsx
+│ │ └── ...
+│ ├── contexts/
+│ │ ├── IntegrationContext.tsx
+│ │ ├── NetworkContext.tsx
+│ ├── types/
+│ │ ├── Types.tsx
+│ ├── ui/
+│ │ ├── App.tsx
+│ │ └── ...
+│ ├── utility/
+│ │ ├── config.ts
+│ ├── index.css
+│ ├── index.tsx
+│ └── ...
+├── index.html
+├── package.json
+└── ...
+
+### Mesh-Middleware
+
+mesh-middleware/
+├── controllers/
+│ ├── aggregatedPortfolioController.js
+│ ├── healthStatusController.js
+│ ├── holdingsController.js
+│ ├── integrationsController.js
+│ ├── linkTokenController.js
+│ ├── networksController.js
+│ ├── transferController.js
+│ ├── transferIntegrationController.js
+│ └── ...
+├── routes/
+│ └── meshRoutes.js
+├── mesh_connect_app_db/
+│ └── ...
+├── services/
+│ ├── pouchdbService.js
+│ └── ...
+├── docs/
+│ ├── scripts/
+│ ├── styles/
+│ └── ...
+├── util.test.js
+└── utils.js
+├── index.js
+├── jsdoc.json
+├── .env
+├── config.js
+├── package.json
+
 ## Running the Application
 
 1. Start the backend server:
@@ -112,4 +190,4 @@ Before you begin, ensure you have met the following requirements:
 - The backend server uses Express and PouchDB for data storage.
 - On shutting down the backend server PouchDB data will be deleted. _Note:_ This is intentional for demo purpose with sandbox enviorment.
 - The frontend application is built with React and uses the Mesh Web Link SDK & uses Mesh-Middleware to communicate with Mesh APIs.
-- The application demonstrates various features such as user login, (exchange/wallets) integration selection, fetching holdings, portfolios and executing payments using two approaches a) Mesh Managed Transfer APIs and b) Link UI.
+- The application demonstrates various features such as user login, (exchange/wallets) integration selection, fetching holdings, portfolios and executing payments using two approaches (a) Mesh Managed Transfer APIs and (b) Link UI.

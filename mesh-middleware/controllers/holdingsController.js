@@ -2,11 +2,18 @@ const axios = require('axios');
 const { MESH_SANDBOX_API_BASE_URL, MESH_HEADERS } = require('../config');
 const { handleGetData } = require('../services/pouchdbService');
 
-// Portfolios Related API Endpoints
-// Obtain assets from the connected investment account. Performs realtime API call to the underlying integration.
+/**
+ * Retrieves holdings data. Obtain assets from the connected investment account. Performs realtime API call to the underlying integration.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} req.body - The body of the request.
+ * @param {string} req.body.id - The docId used to fetch the access token from the database.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves when the operation is complete.
+ */
 const getHoldings = async (req, res) => {
     const { id } = req.body;
-    console.log('Document ID:', id);
+    console.log('getHoldings -> Document Id:', id);
 
     if (!id) {
         return res.status(400).json({ error: 'Document id is required to pull the access token from database.' });
@@ -34,7 +41,7 @@ const getHoldings = async (req, res) => {
         handleGetData(mockReq, mockRes);
     });
 
-    console.log('DB Response:', dbResponse); // Debugging purposes
+    console.log('getHoldings -> DB Response:', dbResponse); // Debugging purposes
 
     if (!dbResponse || dbResponse.statusCode !== 200) {
         return res.status(dbResponse.statusCode).json(dbResponse.data);
@@ -54,7 +61,7 @@ const getHoldings = async (req, res) => {
 
     try {
         const response = await axios.post(`${MESH_SANDBOX_API_BASE_URL}/v1/holdings/get`, bodyContent, { headers: MESH_HEADERS });
-        console.log('Get Holdings Response', JSON.stringify(response.data)); // Debugging purposes
+        console.log('getHoldings -> Get Holdings Response', JSON.stringify(response.data)); // Debugging purposes
         res.json(response.data);
     } catch (error) {
         console.error('Error fetching portfolio holdings:', error.message);

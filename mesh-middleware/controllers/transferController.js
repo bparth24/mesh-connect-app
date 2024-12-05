@@ -2,9 +2,24 @@ const axios = require('axios');
 const { MESH_SANDBOX_API_BASE_URL, MESH_HEADERS } = require('../config');
 const { handleGetData, handleUpdateDoc } = require('../services/pouchdbService');
 
+/**
+ * Preview a transfer request.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} req.body - The body of the request.
+ * @param {string} req.body.userId - Unique identifier for the user.
+ * @param {string} req.body.fromType - The type of the source account (e.g. coinbase).
+ * @param {string} req.body.networkId - The network Id (e.g. Ethereum).
+ * @param {string} req.body.symbol - The symbol of the digital asset (e.g. USDC, BTC, ETH).
+ * @param {string} req.body.toAddress - The destination address.
+ * @param {number} req.body.amountInFiat - The amount in fiat currency.
+ * @param {string} req.body.fiatCurrency - The fiat currency type (e.g. USD).
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves when the transfer preview is complete.
+ */
 const previewTransfer = async (req, res) => {
     const { userId, fromType, networkId, symbol, toAddress, amountInFiat, fiatCurrency } = req.body;
-    console.log('Preview Transfer Request - req.body received from user:', req.body); // Debugging purposes
+    console.log('Preview Transfer Request -> req.body received from user:', req.body); // Debugging purposes
 
     if (!userId) {
         return res.status(400).json({ error: 'userId is required' });
@@ -47,10 +62,10 @@ const previewTransfer = async (req, res) => {
             fiatCurrency: fiatCurrency
         });
 
-        console.log('Preview Transfer Request - bodyContent for Mesh Preview Transfer:', bodyContent); // Debugging purposes
+        console.log('Preview Transfer Request -> bodyContent for Mesh Preview Transfer:', bodyContent); // Debugging purposes
 
         const response = await axios.post(`${MESH_SANDBOX_API_BASE_URL}/v1/transfers/managed/preview`, bodyContent, { headers: MESH_HEADERS });
-        console.log("Preview Transfer Response", response.data); // Debugging purposes
+        console.log("Preview Transfer Response -> ", response.data); // Debugging purposes
 
         // First test rest of the code and then uncomment this block
         // Check if the response contains the previewId
@@ -79,12 +94,21 @@ const previewTransfer = async (req, res) => {
 
         res.json(response.data);
     } catch (error) {
-        console.error('Error previewing transfer:', error.message);
+        console.error('Preview Transfer -> Error previewing transfer:', error.message);
         res.status(500).json({ error: 'Internal Server Error - Previewing Transfer' });
     }
 };
 
-// Execute Transfer
+
+/**
+ * Executes a transfer for a given user.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} req.body - The body of the request.
+ * @param {string} req.body.userId - Unique identifier for the user.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves when the transfer is executed.
+ */
 const executeTransfer = async (req, res) => {
     const { userId } = req.body;
 
@@ -147,7 +171,7 @@ const executeTransfer = async (req, res) => {
 
         res.json(response.data);
     } catch (error) {
-        console.error('Error executing transfer:', error.message);
+        console.error('executeTransfer -> Error executing transfer:', error.message);
         res.status(500).json({ error: 'Internal Server Error - Executing Transfer' });
     }
 };

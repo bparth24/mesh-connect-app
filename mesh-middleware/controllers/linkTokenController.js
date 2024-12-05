@@ -31,10 +31,10 @@ const getLinkToken = async (req, res) => {
 
     try {
         const response = await axios.post(`${MESH_SANDBOX_API_BASE_URL}/v1/linktoken`, bodyContent, { headers: MESH_HEADERS });
-        console.log(response.data);
+        console.log("getLinkToken -> linktoken api response", response.data);
         res.json(response.data);
     } catch (error) {
-        console.error('Error fetching link token:', error.message);
+        console.error('getLinkToken -> Error fetching link token:', error.message);
         res.status(500).json({ error: 'Internal Server Error - Fetching Link Token' });
 
     }
