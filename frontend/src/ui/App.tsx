@@ -505,6 +505,7 @@ const AppContent: React.FC = () => {
           <LinkUIPaymentFlow
             clientDocId={clientDocId}
             selectedType={selectedType}
+            integrationPayload={integrationPayload}
           />
 
           {error && <ErrorModal message={error} onClose={closeModal} />}

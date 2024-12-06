@@ -20,15 +20,18 @@ import { meshMiddlewareApiUrl } from "../utility/config";
 import ErrorModal from "./ErrorModal";
 import SuccessModal from "./SuccessModal";
 import { createLink } from "@meshconnect/web-link-sdk";
+import { AccountToken } from "../types/Types";
 
 interface LinkUIPaymentFlowProps {
   clientDocId: string;
   selectedType: string;
+  integrationPayload: any;
 }
 
 const LinkUIPaymentFlow: React.FC<LinkUIPaymentFlowProps> = ({
   clientDocId,
   selectedType,
+  integrationPayload,
 }) => {
   const { networks } = useNetwork();
   const [username, setClientId] = useState<string>(
@@ -84,6 +87,35 @@ const LinkUIPaymentFlow: React.FC<LinkUIPaymentFlowProps> = ({
    *   - @param {Object} event - The event object containing event details.
    */
   const openLink = (token: string) => {
+    let accessToken = [];
+
+    // TODO: As of now integrationPayload is pulling from the state and passed as props from App.tsx, ideally that information should be pulled from the PouchDB.
+
+    try {
+      if (
+        integrationPayload &&
+        integrationPayload.accessToken &&
+        Array.isArray(integrationPayload.accessToken.accountTokens)
+      ) {
+        accessToken = integrationPayload.accessToken.accountTokens.map(
+          (accountToken: AccountToken) => ({
+            accountId: accountToken.account.frontAccountId, // tried with accountId already didn't work
+            accountName: accountToken.account.accountName,
+            accessToken: accountToken.accessToken,
+            brokerType: integrationPayload.accessToken.brokerType,
+            brokerName: integrationPayload.accessToken.brokerName,
+          })
+        );
+      } else {
+        throw new Error("Invalid integrationPayload structure");
+      }
+    } catch (error) {
+      console.error("Error processing integrationPayload:", error);
+      return; // Exit the function if there's an error
+    }
+
+    console.log("Link UI Payment -> Access Tokens:", accessToken); // Debugging log
+
     const meshLink = createLink({
       clientId: username,
       onIntegrationConnected: (payload) => {
@@ -105,6 +137,8 @@ const LinkUIPaymentFlow: React.FC<LinkUIPaymentFlowProps> = ({
       onEvent: (event) => {
         console.log("Event:", event); // TODO: set event data to the state & database.
       },
+      accessTokens: accessToken,
+      // transferDestinationTokens: [],
     });
     meshLink.openLink(token);
   };
